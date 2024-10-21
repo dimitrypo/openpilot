@@ -31,8 +31,6 @@ private:
 
   FrogPilotSettingsWindow *parent;
 
-  Params params;
-
   bool started;
 
   int customizationLevel;

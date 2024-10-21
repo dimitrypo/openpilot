@@ -8,30 +8,32 @@ import tarfile
 import time
 
 from openpilot.common.basedir import BASEDIR
-from openpilot.common.params_pyx import Params, ParamKeyType, UnknownKeyName
+from openpilot.common.params_pyx import ParamKeyType, UnknownKeyName
 from openpilot.common.time import system_time_valid
 from openpilot.system.hardware import HARDWARE
 
 from openpilot.selfdrive.frogpilot.frogpilot_utilities import copy_if_exists, run_cmd
-
-ACTIVE_THEME_PATH = os.path.join(BASEDIR, "selfdrive", "frogpilot", "assets", "active_theme")
-MODELS_PATH = os.path.join("/data", "models")
-RANDOM_EVENTS_PATH = os.path.join(BASEDIR, "selfdrive", "frogpilot", "assets", "random_events")
-THEME_SAVE_PATH = os.path.join("/data", "themes")
+from openpilot.selfdrive.frogpilot.frogpilot_variables import ACTIVE_THEME_PATH, MODELS_PATH, THEME_SAVE_PATH, FrogPilotVariables
 
 
 def backup_directory(backup, destination, success_message, fail_message, minimum_backup_size=0, params=None, compressed=False):
-  compressed_backup = f"{destination}.tar.gz"
-  in_progress_compressed_backup = f"{compressed_backup}_in_progress"
-  in_progress_destination = f"{destination}_in_progress"
-
   try:
+    compressed_backup = f"{destination}.tar.gz"
+    in_progress_destination = f"{destination}_in_progress"
+    in_progress_compressed_backup = f"{compressed_backup}_in_progress"
     os.makedirs(in_progress_destination, exist_ok=False)
 
     if not compressed:
       if os.path.exists(destination):
         print("Backup already exists. Aborting.")
         return
+
+      backups = sorted(glob.glob(os.path.join(os.path.dirname(destination), "*_auto*")), key=os.path.getmtime, reverse=True)
+      if backups:
+        latest_backup = backups[0]
+        if not subprocess.call(["rsync", "-nrc", "--delete", os.path.join(backup, "."), latest_backup + "/"]):
+          print("An identical backup already exists. Aborting.")
+          return
 
       run_cmd(["sudo", "rsync", "-avq", os.path.join(backup, "."), in_progress_destination], success_message, fail_message)
       os.rename(in_progress_destination, destination)
@@ -54,19 +56,14 @@ def backup_directory(backup, destination, success_message, fail_message, minimum
       if minimum_backup_size == 0 or compressed_backup_size < minimum_backup_size:
         params.put_int_nonblocking("MinimumBackupSize", compressed_backup_size)
 
-    backups = sorted(glob.glob(os.path.join(os.path.dirname(destination), "*_auto*")), key=os.path.getmtime, reverse=True)
-    if len(backups) > 1:
-      latest_backup = backups[1]
-      if compressed:
-        if filecmp.cmp(compressed_backup, latest_backup, shallow=False):
-          run_cmd(["sudo", "rm", "-rf", compressed_backup], f"Deleted identical backup: {os.path.basename(compressed_backup)}", f"Failed to delete identical backup: {os.path.basename(compressed_backup)}")
-      else:
-        if not subprocess.call(["rsync", "-nrc", "--delete", destination + "/", latest_backup + "/"]):
-          run_cmd(["sudo", "rm", "-rf", destination], f"Deleted identical backup: {os.path.basename(destination)}", f"Failed to delete identical backup: {os.path.basename(destination)}")
+      backups = sorted(glob.glob(os.path.join(os.path.dirname(destination), "*_auto*")), key=os.path.getmtime, reverse=True)
+      if backups:
+        latest_backup = backups[0]
+        if os.path.exists(latest_backup) and filecmp.cmp(latest_backup, compressed_backup, shallow=False):
+          print("An identical backup already exists. Deleting.")
+          return
 
   except Exception as e:
-    print(f"An unexpected error occurred while trying to create the {backup} backup: {e}")
-
     if os.path.exists(in_progress_compressed_backup):
       try:
         os.remove(in_progress_compressed_backup)
@@ -120,7 +117,7 @@ def backup_toggles(params, params_storage):
     if params.get_key_type(key) & ParamKeyType.FROGPILOT_STORAGE:
       value = params.get(key)
       if value is not None:
-        params_storage.put(key, value)
+        params_storage.put_nonblocking(key, value)
 
   backup_path = os.path.join("/data", "toggle_backups")
   maximum_backups = 10
@@ -178,6 +175,8 @@ def convert_params(params, params_storage):
 
 
 def frogpilot_boot_functions(build_metadata, params, params_storage):
+  params_storage.clear_all(ParamKeyType.ALL)
+
   old_screenrecordings = os.path.join("/data", "media", "0", "videos")
   new_screenrecordings = os.path.join("/data", "media", "screen_recordings")
 
@@ -197,9 +196,10 @@ def frogpilot_boot_functions(build_metadata, params, params_storage):
 
 
 def setup_frogpilot(build_metadata, params):
+  FrogPilotVariables().update(False)
+
   remount_persist = ["sudo", "mount", "-o", "remount,rw", "/persist"]
-  if not run_cmd(remount_persist, "Successfully remounted /persist as read-write.", "Failed to remount /persist."):
-    HARDWARE.reboot()
+  run_cmd(remount_persist, "Successfully remounted /persist as read-write.", "Failed to remount /persist.")
 
   os.makedirs("/persist/params", exist_ok=True)
   os.makedirs(MODELS_PATH, exist_ok=True)
@@ -253,15 +253,15 @@ def setup_frogpilot(build_metadata, params):
     copy_if_exists(frog_steering_wheel_source, frog_steering_wheel_destination, single_file_name="frog.png")
 
   remount_root = ["sudo", "mount", "-o", "remount,rw", "/"]
-  if not run_cmd(remount_root, "File system remounted as read-write.", "Failed to remount file system."):
-    HARDWARE.reboot()
+  run_cmd(remount_root, "File system remounted as read-write.", "Failed to remount file system.")
 
   boot_logo_location = "/usr/comma/bg.jpg"
   boot_logo_save_location = os.path.join(BASEDIR, "selfdrive", "frogpilot", "assets", "other_images", "original_bg.jpg")
   frogpilot_boot_logo = os.path.join(BASEDIR, "selfdrive", "frogpilot", "assets", "other_images", "frogpilot_boot_logo.png")
 
-  if filecmp.cmp(frogpilot_boot_logo, boot_logo_location, shallow=False):
-    run_cmd(["sudo", "cp", boot_logo_save_location, boot_logo_location], "Successfully replaced bg.jpg with frogpilot_boot_logo.png.", "Failed to replace boot logo.")
+  if not filecmp.cmp(frogpilot_boot_logo, boot_logo_location, shallow=False):
+    run_cmd(["sudo", "cp", boot_logo_location, boot_logo_save_location], "Successfully backed up original bg.jpg.", "Failed to back up original boot logo.")
+    run_cmd(["sudo", "cp", frogpilot_boot_logo, boot_logo_location], "Successfully replaced bg.jpg with frogpilot_boot_logo.png.", "Failed to replace boot logo.")
 
   if build_metadata.channel == "FrogPilot-Development":
     subprocess.run(["sudo", "python3", "/persist/frogsgomoo.py"], check=True)
@@ -272,7 +272,6 @@ def uninstall_frogpilot():
   boot_logo_restore_location = os.path.join(BASEDIR, "selfdrive", "frogpilot", "assets", "other_images", "original_bg.jpg")
 
   copy_cmd = ["sudo", "cp", boot_logo_restore_location, boot_logo_location]
-  if not run_cmd(copy_cmd, "Successfully restored the original boot logo.", "Failed to restore the original boot logo."):
-    HARDWARE.reboot()
+  run_cmd(copy_cmd, "Successfully restored the original boot logo.", "Failed to restore the original boot logo.")
 
   HARDWARE.uninstall()

@@ -14,8 +14,7 @@ from openpilot.common.swaglog import cloudlog
 
 from openpilot.system import micd
 
-from openpilot.selfdrive.frogpilot.frogpilot_functions import ACTIVE_THEME_PATH, RANDOM_EVENTS_PATH
-from openpilot.selfdrive.frogpilot.frogpilot_variables import get_frogpilot_toggles
+from openpilot.selfdrive.frogpilot.frogpilot_variables import ACTIVE_THEME_PATH, RANDOM_EVENTS_PATH, get_frogpilot_toggles, params_memory
 
 SAMPLE_RATE = 48000
 SAMPLE_BUFFER = 4096 # (approx 100ms)
@@ -80,7 +79,7 @@ class Soundd:
     self.spl_filter_weighted = FirstOrderFilter(0, 2.5, FILTER_DT, initialized=False)
 
     # FrogPilot variables
-    self.frogpilot_toggles = get_frogpilot_toggles(True)
+    self.frogpilot_toggles = get_frogpilot_toggles()
 
     self.auto_volume = 0
 
@@ -193,7 +192,7 @@ class Soundd:
       rk = Ratekeeper(20)
 
       cloudlog.info(f"soundd stream started: {stream.samplerate=} {stream.channels=} {stream.dtype=} {stream.device=}, {stream.blocksize=}")
-      while True:
+      while not params_memory.get_bool("TestingSound"):
         sm.update(0)
 
         if sm.updated['microphone'] and self.current_alert == AudibleAlert.none: # only update volume filter when not playing alert

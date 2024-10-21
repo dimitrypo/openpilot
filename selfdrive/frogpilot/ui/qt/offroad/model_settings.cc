@@ -13,7 +13,6 @@ FrogPilotModelPanel::FrogPilotModelPanel(FrogPilotSettingsWindow *parent) : Frog
     {"DownloadModel", tr("Download Model"), tr("Downloads the selected driving model."), ""},
     {"DownloadAllModels", tr("Download All Models"), tr("Downloads all undownloaded driving models."), ""},
     {"SelectModel", tr("Select Model"), tr("Selects which model openpilot uses to drive."), ""},
-    {"ResetCalibrations", tr("Reset Model Calibrations"), tr("Resets calibration settings for the driving models."), ""},
   };
 
   for (const auto &[param, title, desc, icon] : modelToggles) {
@@ -22,6 +21,7 @@ FrogPilotModelPanel::FrogPilotModelPanel(FrogPilotSettingsWindow *parent) : Frog
     if (param == "ModelRandomizer") {
       FrogPilotParamManageControl *modelRandomizerToggle = new FrogPilotParamManageControl(param, title, desc, icon);
       QObject::connect(modelRandomizerToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        modelRandomizerOpen = true;
         showToggles(modelRandomizerKeys);
         updateModelLabels();
       });
@@ -69,8 +69,8 @@ FrogPilotModelPanel::FrogPilotModelPanel(FrogPilotSettingsWindow *parent) : Frog
       });
       modelToggle = blacklistBtn;
     } else if (param == "ResetScores") {
-      ButtonControl *resetCalibrationsBtn = new ButtonControl(title, tr("RESET"), desc);
-      QObject::connect(resetCalibrationsBtn, &ButtonControl::clicked, [this]() {
+      ButtonControl *resetScoresBtn = new ButtonControl(title, tr("RESET"), desc);
+      QObject::connect(resetScoresBtn, &ButtonControl::clicked, [this]() {
         if (FrogPilotConfirmationDialog::yesorno(tr("Reset all model scores?"), this)) {
           for (const QString &model : availableModelNames) {
             QString cleanedModel = processModelName(model);
@@ -82,7 +82,7 @@ FrogPilotModelPanel::FrogPilotModelPanel(FrogPilotSettingsWindow *parent) : Frog
           updateModelLabels();
         }
       });
-      modelToggle = reinterpret_cast<AbstractControl*>(resetCalibrationsBtn);
+      modelToggle = reinterpret_cast<AbstractControl*>(resetScoresBtn);
     } else if (param == "ReviewScores") {
       ButtonControl *reviewScoresBtn = new ButtonControl(title, tr("VIEW"), desc);
       QObject::connect(reviewScoresBtn, &ButtonControl::clicked, [this]() {
@@ -147,8 +147,6 @@ FrogPilotModelPanel::FrogPilotModelPanel(FrogPilotSettingsWindow *parent) : Frog
           paramsMemory.remove("ModelToDownload");
           paramsMemory.putBool("CancelModelDownload", true);
           cancellingDownload = true;
-
-          device()->resetInteractiveTimeout(30);
         } else {
           QMap<QString, QString> labelToModelMap;
           QStringList existingModels = modelDir.entryList({"*.thneed"}, QDir::Files);
@@ -164,8 +162,6 @@ FrogPilotModelPanel::FrogPilotModelPanel(FrogPilotSettingsWindow *parent) : Frog
 
           QString modelToDownload = MultiOptionDialog::getSelection(tr("Select a driving model to download"), downloadableModels, "", this);
           if (!modelToDownload.isEmpty()) {
-            device()->resetInteractiveTimeout(300);
-
             modelDownloading = true;
             paramsMemory.put("ModelToDownload", labelToModelMap.value(modelToDownload).toStdString());
             paramsMemory.put("ModelDownloadProgress", "0%");
@@ -221,8 +217,6 @@ FrogPilotModelPanel::FrogPilotModelPanel(FrogPilotSettingsWindow *parent) : Frog
 
                     params.putBoolNonBlocking("ModelsDownloaded", modelsDownloaded);
                   }
-
-                  device()->resetInteractiveTimeout(30);
                 });
               }
             });
@@ -238,11 +232,7 @@ FrogPilotModelPanel::FrogPilotModelPanel(FrogPilotSettingsWindow *parent) : Frog
           paramsMemory.remove("DownloadAllModels");
           paramsMemory.putBool("CancelModelDownload", true);
           cancellingDownload = true;
-
-          device()->resetInteractiveTimeout(30);
         } else {
-          device()->resetInteractiveTimeout(300);
-
           startDownloadAllModels();
         }
       });
@@ -271,16 +261,6 @@ FrogPilotModelPanel::FrogPilotModelPanel(FrogPilotSettingsWindow *parent) : Frog
             FrogPilotConfirmationDialog::toggleAlert(tr("WARNING: This is a very experimental model and may drive dangerously!"), tr("I understand the risks."), this);
           }
 
-          QString model = availableModelNames.at(modelIndex);
-          QString part_model_param = processModelName(model);
-
-          if (!params.checkKey(part_model_param.toStdString() + "CalibrationParams") || !params.checkKey(part_model_param.toStdString() + "LiveTorqueParameters")) {
-            if (FrogPilotConfirmationDialog::yesorno(tr("Start with a fresh calibration for the newly selected model?"), this)) {
-              params.remove("CalibrationParams");
-              params.remove("LiveTorqueParameters");
-            }
-          }
-
           if (started) {
             if (FrogPilotConfirmationDialog::toggle(tr("Reboot required to take effect."), tr("Reboot Now"), this)) {
               Hardware::reboot();
@@ -292,39 +272,6 @@ FrogPilotModelPanel::FrogPilotModelPanel(FrogPilotSettingsWindow *parent) : Frog
       });
       selectModelBtn->setValue(QString::fromStdString(params.get("ModelName")));
       modelToggle = reinterpret_cast<AbstractControl*>(selectModelBtn);
-    } else if (param == "ResetCalibrations") {
-      FrogPilotButtonsControl *resetCalibrationsBtn = new FrogPilotButtonsControl(title, desc, {tr("RESET ALL"), tr("RESET ONE")});
-      QObject::connect(resetCalibrationsBtn, &FrogPilotButtonsControl::showDescriptionEvent, this, &FrogPilotModelPanel::updateCalibrationDescription);
-      QObject::connect(resetCalibrationsBtn, &FrogPilotButtonsControl::buttonClicked, [=](int id) {
-        if (id == 0) {
-          if (FrogPilotConfirmationDialog::yesorno(tr("Are you sure you want to completely reset all of your model calibrations?"), this)) {
-            for (const QString &model : availableModelNames) {
-              QString cleanedModel = processModelName(model);
-              params.remove(QString("%1CalibrationParams").arg(cleanedModel).toStdString());
-              paramsStorage.remove(QString("%1CalibrationParams").arg(cleanedModel).toStdString());
-              params.remove(QString("%1LiveTorqueParameters").arg(cleanedModel).toStdString());
-              paramsStorage.remove(QString("%1LiveTorqueParameters").arg(cleanedModel).toStdString());
-            }
-          }
-        } else if (id == 1) {
-          QStringList selectableModelLabels;
-          for (int i = 0; i < availableModels.size(); ++i) {
-            selectableModelLabels.append(availableModelNames[i]);
-          }
-
-          QString modelToReset = MultiOptionDialog::getSelection(tr("Select a model to reset"), selectableModelLabels, "", this);
-          if (!modelToReset.isEmpty()) {
-            if (FrogPilotConfirmationDialog::yesorno(tr("Are you sure you want to completely reset this model's calibrations?"), this)) {
-              QString cleanedModel = processModelName(modelToReset);
-              params.remove(QString("%1CalibrationParams").arg(cleanedModel).toStdString());
-              paramsStorage.remove(QString("%1CalibrationParams").arg(cleanedModel).toStdString());
-              params.remove(QString("%1LiveTorqueParameters").arg(cleanedModel).toStdString());
-              paramsStorage.remove(QString("%1LiveTorqueParameters").arg(cleanedModel).toStdString());
-            }
-          }
-        }
-      });
-      modelToggle = resetCalibrationsBtn;
 
     } else {
       modelToggle = new ParamControl(param, title, desc, icon);
@@ -356,8 +303,6 @@ FrogPilotModelPanel::FrogPilotModelPanel(FrogPilotSettingsWindow *parent) : Frog
   QObject::connect(parent, &FrogPilotSettingsWindow::closeParentToggle, this, &FrogPilotModelPanel::hideToggles);
   QObject::connect(parent, &FrogPilotSettingsWindow::closeSubParentToggle, this, &FrogPilotModelPanel::hideSubToggles);
   QObject::connect(uiState(), &UIState::uiUpdate, this, &FrogPilotModelPanel::updateState);
-
-  hideToggles();
 }
 
 void FrogPilotModelPanel::showEvent(QShowEvent *event) {
@@ -377,6 +322,8 @@ void FrogPilotModelPanel::showEvent(QShowEvent *event) {
 
 void FrogPilotModelPanel::updateState(const UIState &s) {
   if (!isVisible()) return;
+
+  uiState()->scene.keep_screen_on = modelDownloading;
 
   downloadAllModelsBtn->setText(modelDownloading && allModelsDownloading ? tr("CANCEL") : tr("DOWNLOAD"));
   downloadModelBtn->setText(modelDownloading && !allModelsDownloading ? tr("CANCEL") : tr("DOWNLOAD"));
@@ -430,39 +377,10 @@ void FrogPilotModelPanel::startDownloadAllModels() {
         paramsMemory.remove("DownloadAllModels");
 
         downloadAllModelsBtn->setValue("");
-
-        device()->resetInteractiveTimeout(30);
       });
     }
   });
   progressTimer->start();
-}
-
-void FrogPilotModelPanel::updateCalibrationDescription() {
-  QString model = QString::fromStdString(params.get("ModelName"));
-  QString part_model_param = processModelName(model);
-
-  QString desc =
-      tr("openpilot requires the device to be mounted within 4° left or right and "
-         "within 5° up or 9° down. openpilot is continuously calibrating, resetting is rarely required.");
-  std::string calib_bytes = params.get(part_model_param.toStdString() + "CalibrationParams");
-  if (!calib_bytes.empty()) {
-    try {
-      AlignedBuffer aligned_buf;
-      capnp::FlatArrayMessageReader cmsg(aligned_buf.align(calib_bytes.data(), calib_bytes.size()));
-      auto calib = cmsg.getRoot<cereal::Event>().getLiveCalibration();
-      if (calib.getCalStatus() != cereal::LiveCalibrationData::Status::UNCALIBRATED) {
-        double pitch = calib.getRpyCalib()[1] * (180 / M_PI);
-        double yaw = calib.getRpyCalib()[2] * (180 / M_PI);
-        desc += tr(" Your device is pointed %1° %2 and %3° %4.")
-                    .arg(QString::number(std::abs(pitch), 'g', 1), pitch > 0 ? tr("down") : tr("up"),
-                         QString::number(std::abs(yaw), 'g', 1), yaw > 0 ? tr("left") : tr("right"));
-      }
-    } catch (kj::Exception) {
-      qInfo() << "invalid CalibrationParams";
-    }
-  }
-  qobject_cast<FrogPilotButtonsControl *>(sender())->setDescription(desc);
 }
 
 void FrogPilotModelPanel::updateModelLabels() {
@@ -506,6 +424,8 @@ void FrogPilotModelPanel::showToggles(const std::set<QString> &keys) {
 void FrogPilotModelPanel::hideToggles() {
   setUpdatesEnabled(false);
 
+  modelRandomizerOpen = false;
+
   for (LabelControl *label : labelControls) {
     label->setVisible(false);
   }
@@ -521,7 +441,18 @@ void FrogPilotModelPanel::hideToggles() {
 }
 
 void FrogPilotModelPanel::hideSubToggles() {
-  for (LabelControl *label : labelControls) {
-    label->setVisible(false);
+  setUpdatesEnabled(false);
+
+  if (modelRandomizerOpen) {
+    for (LabelControl *label : labelControls) {
+      label->setVisible(false);
+    }
+
+    for (auto &[key, toggle] : toggles) {
+      toggle->setVisible(modelRandomizerKeys.find(key) != modelRandomizerKeys.end());
+    }
   }
+
+  setUpdatesEnabled(true);
+  update();
 }

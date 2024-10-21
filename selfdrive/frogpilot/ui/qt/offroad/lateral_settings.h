@@ -37,8 +37,7 @@ private:
   };
 
   std::set<QString> lateralTuneKeys = {
-    "NNFF", "NNFFLite", "TacoTune",
-    "TurnDesires"
+    "NNFF", "NNFFLite", "TurnDesires"
   };
 
   std::set<QString> qolKeys = {

@@ -4,7 +4,7 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
   const std::vector<std::tuple<QString, QString, QString, QString>> visualToggles {
     {"QOLVisuals", tr("Accessibility"), tr("Visual features to improve your overall openpilot experience."), "../frogpilot/assets/toggle_icons/icon_accessibility.png"},
     {"CameraView", tr("Camera View"), tr("Changes the camera view display. This is purely a visual change and doesn't impact how openpilot drives."), ""},
-    {"OnroadDistanceButton", tr("Onroad Personality Button"), tr("Displays the current driving personality on the screen. Tap to switch personalities, or long press for 2.5 seconds to activate 'Traffic' mode."), ""},
+    {"OnroadDistanceButton", tr("On Screen Personality Button"), tr("Displays the current driving personality on the screen. Tap to switch personalities, or long press for 2.5 seconds to activate 'Traffic' mode."), ""},
     {"DriverCamera", tr("Show Driver Camera When In Reverse"), tr("Displays the driver camera feed when the vehicle is in reverse."), ""},
     {"StandbyMode", tr("Standby Mode"), tr("Turns the screen off when driving and automatically wakes it up if engagement state changes or important alerts occur."), ""},
     {"StoppedTimer", tr("Stopped Timer"), tr("Activates a timer when stopped to indicate how long the vehicle has been stopped for."), ""},
@@ -15,6 +15,7 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
     {"HideMapIcon", tr("Hide Map Icon"), tr("Hides the map icon."), ""},
     {"HideMaxSpeed", tr("Hide Max Speed"), tr("Hides the max speed."), ""},
     {"HideAlerts", tr("Hide Non-Critical Alerts"), tr("Hides non-critical alerts."), ""},
+    {"HideSpeedLimit", tr("Hide Speed Limits"), tr("Hides the speed limits."), ""},
     {"WheelSpeed", tr("Use Wheel Speed"), tr("Uses the wheel speed instead of the cluster speed. This is purely a visual change and doesn't impact how openpilot drives."), ""},
 
     {"DeveloperUI", tr("Developer Metrics"), tr("Show detailed information about openpilot's internal operations."), "../assets/offroad/icon_shell.png"},

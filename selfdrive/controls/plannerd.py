@@ -31,11 +31,11 @@ def plannerd_thread():
   longitudinal_planner = LongitudinalPlanner(CP)
   pm = messaging.PubMaster(['longitudinalPlan', 'uiPlan'])
   sm = messaging.SubMaster(['carControl', 'carState', 'controlsState', 'liveParameters', 'radarState', 'modelV2',
-                            'frogpilotCarControl', 'frogpilotCarState', 'frogpilotPlan'],
+                            'frogpilotCarState', 'frogpilotPlan'],
                            poll='modelV2', ignore_avg_freq=['radarState'])
 
   # FrogPilot variables
-  frogpilot_toggles = get_frogpilot_toggles(True)
+  frogpilot_toggles = get_frogpilot_toggles()
 
   classic_model = frogpilot_toggles.classic_model
   radarless_model = frogpilot_toggles.radarless_model

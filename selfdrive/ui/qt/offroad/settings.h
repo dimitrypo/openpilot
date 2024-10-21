@@ -77,9 +77,6 @@ private slots:
 private:
   Params params;
   ButtonControl *pair_device;
-
-  // FrogPilot variables
-  ButtonControl *resetCalibBtn;
 };
 
 class TogglesPanel : public ListWidget {
@@ -129,6 +126,4 @@ private:
 
   // FrogPilot variables
   Params paramsMemory{"/dev/shm/params"};
-
-  bool frogsGoMoo = getDongleId().value_or("") == "FrogsGoMoo";
 };

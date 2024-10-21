@@ -18,7 +18,7 @@ def download_file(cancel_param, destination, temp_destination, progress_param, u
       response.raise_for_status()
       for chunk in response.iter_content(chunk_size=8192):
         if params_memory.get_bool(cancel_param):
-          handle_error(temp_destination, "Download cancelled.", "Download cancelled.", download_param, progress_param, params_memory)
+          handle_error(temp_destination, "Download cancelled", "Download cancelled", download_param, progress_param, params_memory)
           return
 
         if chunk:
@@ -46,13 +46,13 @@ def handle_error(destination, error_message, error, download_param, progress_par
 
 def handle_request_error(error, destination, download_param, progress_param, params_memory):
   error_map = {
-    requests.ConnectionError: "Connection dropped.",
-    requests.HTTPError: lambda e: f"Server error ({e.response.status_code})" if e.response else "Server error.",
-    requests.RequestException: "Network request error. Check connection.",
-    requests.Timeout: "Download timed out."
+    requests.ConnectionError: "Connection dropped",
+    requests.HTTPError: lambda e: f"Server error ({e.response.status_code})" if e.response else "Server error",
+    requests.RequestException: "Network request error. Check connection",
+    requests.Timeout: "Download timed out"
   }
 
-  error_message = error_map.get(type(error), "Unexpected error.")
+  error_message = error_map.get(type(error), "Unexpected error")
   handle_error(destination, f"Failed: {error_message}", error, download_param, progress_param, params_memory)
 
 def get_remote_file_size(url):

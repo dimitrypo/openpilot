@@ -14,7 +14,6 @@ from openpilot.common.basedir import BASEDIR
 from openpilot.common.conversions import Conversions as CV
 from openpilot.common.simple_kalman import KF1D, get_kalman_gain
 from openpilot.common.numpy_fast import clip
-from openpilot.common.params import Params
 from openpilot.common.realtime import DT_CTRL
 from openpilot.selfdrive.car import apply_hysteresis, gen_empty_fingerprint, scale_rot_inertia, scale_tire_stiffness, STD_CARGO_KG
 from openpilot.selfdrive.car.values import PLATFORMS
@@ -22,7 +21,7 @@ from openpilot.selfdrive.controls.lib.drive_helpers import CRUISE_LONG_PRESS, V_
 from openpilot.selfdrive.controls.lib.events import Events
 from openpilot.selfdrive.controls.lib.vehicle_model import VehicleModel
 
-from openpilot.selfdrive.frogpilot.frogpilot_variables import get_frogpilot_toggles
+from openpilot.selfdrive.frogpilot.frogpilot_variables import get_frogpilot_toggles, params, params_memory
 
 ButtonType = car.CarState.ButtonEvent.Type
 FrogPilotButtonType = custom.FrogPilotCarState.ButtonEvent.Type
@@ -225,10 +224,7 @@ class CarInterfaceBase(ABC):
     self.CC: CarControllerBase = CarController(dbc_name, CP, self.VM)
 
     # FrogPilot variables
-    self.frogpilot_toggles = get_frogpilot_toggles(True)
-
-    self.params = Params()
-    self.params_memory = Params("/dev/shm/params")
+    self.frogpilot_toggles = get_frogpilot_toggles()
 
     eps_firmware = str(next((fw.fwVersion for fw in CP.carFw if fw.ecu == "eps"), ""))
 
@@ -267,7 +263,7 @@ class CarInterfaceBase(ABC):
     return self.CC.update(c, self.CS, now_nanos, frogpilot_toggles)
 
   @staticmethod
-  def get_pid_accel_limits(CP, current_speed, cruise_speed, frogpilot_toggles):
+  def get_pid_accel_limits(CP, current_speed, cruise_speed):
     return ACCEL_MIN, ACCEL_MAX
 
   @classmethod
@@ -278,7 +274,7 @@ class CarInterfaceBase(ABC):
     return cls.get_params(candidate, gen_empty_fingerprint(), list(), False, False, False)
 
   @classmethod
-  def get_params(cls, candidate: str, fingerprint: dict[int, dict[int, int]], car_fw: list[car.CarParams.CarFw], disable_openpilot_long: bool, experimental_long: bool, params: Params, docs: bool):
+  def get_params(cls, candidate: str, fingerprint: dict[int, dict[int, int]], car_fw: list[car.CarParams.CarFw], disable_openpilot_long: bool, experimental_long: bool, params: params, docs: bool):
     ret = CarInterfaceBase.get_std_params(candidate)
 
     platform = PLATFORMS[candidate]
@@ -291,7 +287,7 @@ class CarInterfaceBase(ABC):
     ret.tireStiffnessFactor = platform.config.specs.tireStiffnessFactor
     ret.flags |= int(platform.config.flags)
 
-    ret = cls._get_params(ret, candidate, fingerprint, car_fw, disable_openpilot_long, experimental_long, docs, params)
+    ret = cls._get_params(ret, candidate, fingerprint, car_fw, disable_openpilot_long, experimental_long, docs)
 
     # Enable torque controller for all cars that do not use angle based steering
     if ret.steerControlType != car.CarParams.SteerControlType.angle and params.get_bool("LateralTune") and params.get_bool("NNFF"):
@@ -513,7 +509,7 @@ class CarInterfaceBase(ABC):
     return events
 
   def frogpilot_distance_functions(self, frogpilot_toggles):
-    distance_button = self.CS.distance_button or self.params_memory.get_bool("OnroadDistanceButtonPressed")
+    distance_button = self.CS.distance_button or params_memory.get_bool("OnroadDistanceButtonPressed")
 
     if distance_button:
       self.gap_counter += 1
@@ -522,12 +518,12 @@ class CarInterfaceBase(ABC):
 
     if self.gap_counter == CRUISE_LONG_PRESS * (1.5 if self.is_gm else 1) and frogpilot_toggles.experimental_mode_via_distance or self.traffic_mode_changed:
       if frogpilot_toggles.conditional_experimental_mode:
-        conditional_status = self.params_memory.get_int("CEStatus")
+        conditional_status = params_memory.get_int("CEStatus")
         override_value = 0 if conditional_status in {1, 2, 3, 4, 5, 6} else 1 if conditional_status >= 7 else 2
-        self.params_memory.put_int("CEStatus", override_value)
+        params_memory.put_int("CEStatus", override_value)
       else:
-        experimental_mode = self.params.get_bool("ExperimentalMode")
-        self.params.put_bool("ExperimentalMode", not experimental_mode)
+        experimental_mode = params.get_bool("ExperimentalMode")
+        params.put_bool("ExperimentalMode", not experimental_mode)
       self.traffic_mode_changed = False
 
     if self.gap_counter == CRUISE_LONG_PRESS * 5:

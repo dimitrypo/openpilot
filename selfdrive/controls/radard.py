@@ -378,7 +378,7 @@ def main():
   rk = Ratekeeper(1.0 / CP.radarTimeStep, print_delay_threshold=None)
 
   # FrogPilot variables
-  frogpilot_toggles = get_frogpilot_toggles(True)
+  frogpilot_toggles = get_frogpilot_toggles()
 
   RD = RadarD(frogpilot_toggles, CP.radarTimeStep, RI.delay)
 

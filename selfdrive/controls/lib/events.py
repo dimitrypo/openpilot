@@ -10,9 +10,10 @@ from cereal import log, car
 import cereal.messaging as messaging
 from openpilot.common.conversions import Conversions as CV
 from openpilot.common.git import get_short_branch
-from openpilot.common.params import Params
 from openpilot.common.realtime import DT_CTRL
 from openpilot.selfdrive.locationd.calibrationd import MIN_SPEED_FILTER
+
+from openpilot.selfdrive.frogpilot.frogpilot_variables import params
 
 AlertSize = log.ControlsState.AlertSize
 AlertStatus = log.ControlsState.AlertStatus
@@ -381,7 +382,7 @@ def no_lane_available_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.S
 
 
 def torque_nn_load_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubMaster, metric: bool, soft_disable_time: int, frogpilot_toggles: SimpleNamespace) -> Alert:
-  model_name = Params().get("NNFFModelName", encoding='utf-8')
+  model_name = params.get("NNFFModelName", encoding='utf-8')
   if model_name == "":
     return Alert(
       "NNFF Torque Controller not available",
@@ -436,6 +437,12 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
     ET.PERMANENT: StartupAlert("Car Unrecognized",
                                "Check comma power connections",
                                alert_status=AlertStatus.userPrompt),
+  },
+
+  EventName.startupNoSecOcKey: {
+    ET.PERMANENT: NormalPermanentAlert("Dashcam Mode",
+                                       "Security Key Not Available",
+                                       priority=Priority.HIGH),
   },
 
   EventName.dashcamMode: {

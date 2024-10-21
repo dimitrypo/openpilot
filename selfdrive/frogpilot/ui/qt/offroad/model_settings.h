@@ -22,7 +22,6 @@ private:
   void hideToggles();
   void showToggles(const std::set<QString> &keys);
   void startDownloadAllModels();
-  void updateCalibrationDescription();
   void updateModelLabels();
   void updateState(const UIState &s);
 
@@ -53,6 +52,7 @@ private:
   bool modelDeleting;
   bool modelDownloading;
   bool modelRandomizer;
+  bool modelRandomizerOpen;
   bool modelsDownloaded;
   bool started;
 

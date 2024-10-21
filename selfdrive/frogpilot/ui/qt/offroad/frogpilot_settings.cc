@@ -137,6 +137,8 @@ FrogPilotSettingsWindow::FrogPilotSettingsWindow(SettingsWindow *parent) : QFram
   QObject::connect(parent, &SettingsWindow::closeSubParentToggle, this, &FrogPilotSettingsWindow::closeSubParentToggle);
   QObject::connect(parent, &SettingsWindow::updateMetric, this, &FrogPilotSettingsWindow::updateMetric);
   QObject::connect(uiState(), &UIState::offroadTransition, this, &FrogPilotSettingsWindow::updateCarVariables);
+
+  closeParentToggle();
 }
 
 void FrogPilotSettingsWindow::showEvent(QShowEvent *event) {
@@ -148,6 +150,8 @@ void FrogPilotSettingsWindow::closePanel() {
   if (currentWidget != frogpilotSettingsWidget) {
     mainLayout->removeWidget(currentWidget);
   }
+
+  uiState()->scene.keep_screen_on = false;
 }
 
 void FrogPilotSettingsWindow::updatePanelVisibility() {
@@ -155,11 +159,14 @@ void FrogPilotSettingsWindow::updatePanelVisibility() {
   disableOpenpilotLongitudinal = params.getBool("DisableOpenpilotLongitudinal");
 
   if ((hasOpenpilotLongitudinal && !disableOpenpilotLongitudinal) || customizationLevel != 0) {
+    drivingButton->setVisible(true);
     drivingButton->setVisibleButton(0, customizationLevel == 2);
     drivingButton->setVisibleButton(1, hasOpenpilotLongitudinal && !disableOpenpilotLongitudinal);
     drivingButton->setVisibleButton(2, customizationLevel != 0);
+    update();
   } else {
     drivingButton->setVisible(false);
+    update();
   }
   navigationButton->setVisibleButton(1, !uiState()->hasPrime());
   systemButton->setVisibleButton(1, customizationLevel != 0);
@@ -168,13 +175,12 @@ void FrogPilotSettingsWindow::updatePanelVisibility() {
 }
 
 void FrogPilotSettingsWindow::updateCarVariables() {
-  float currentFrictionStock = params.getFloat("SteerFrictionStock");
-  float currentKPStock = params.getFloat("SteerKPStock");
-  float currentLatAccelStock = params.getFloat("SteerLatAccelStock");
-  float currentRatioStock = params.getFloat("SteerRatioStock");
+  std::thread([this] {
+    std::string carParams = params.get("CarParamsPersistent");
+    if (carParams.empty()) {
+      carParams = params.get("CarParams", true);
+    }
 
-  std::string carParams = params.get("CarParamsPersistent");
-  if (!carParams.empty()) {
     AlignedBuffer aligned_buf;
     capnp::FlatArrayMessageReader cmsg(aligned_buf.align(carParams.data(), carParams.size()));
     cereal::CarParams::Reader CP = cmsg.getRoot<cereal::CarParams>();
@@ -200,13 +206,17 @@ void FrogPilotSettingsWindow::updateCarVariables() {
     isPIDCar = CP.getLateralTuning().which() == cereal::CarParams::LateralTuning::PID;
     isSubaru = carModel == "subaru";
     isToyota = carModel == "toyota";
-    isToyotaTuneSupported = carFingerprint == "LEXUS_ES_TSS2";
     isVolt = carFingerprint == "CHEVROLET_VOLT";
     forcingAutoTune = params.getBool("AdvancedLateralTune") && params.getBool("ForceAutoTune");
     steerFrictionStock = CP.getLateralTuning().getTorque().getFriction();
     steerKPStock = CP.getLateralTuning().getTorque().getKp();
     steerLatAccelStock = CP.getLateralTuning().getTorque().getLatAccelFactor();
     steerRatioStock = CP.getSteerRatio();
+
+    float currentFrictionStock = params.getFloat("SteerFrictionStock");
+    float currentKPStock = params.getFloat("SteerKPStock");
+    float currentLatAccelStock = params.getFloat("SteerLatAccelStock");
+    float currentRatioStock = params.getFloat("SteerRatioStock");
 
     if (currentFrictionStock != steerFrictionStock && steerFrictionStock != 0) {
       if (params.getFloat("SteerFriction") == currentFrictionStock) {
@@ -237,54 +247,25 @@ void FrogPilotSettingsWindow::updateCarVariables() {
     }
 
     uiState()->scene.has_auto_tune = hasAutoTune || forcingAutoTune;
-  } else {
-    hasAutoTune = true;
-    hasBSM = true;
-    hasDashSpeedLimits = true;
-    hasExperimentalOpenpilotLongitudinal = false;
-    hasNNFFLog = true;
-    hasOpenpilotLongitudinal = true;
-    hasPCMCruise = true;
-    hasRadar = true;
-    hasSNG = false;
-    isGM = true;
-    isGMPCMCruise = false;
-    isHKGCanFd = true;
-    isImpreza = true;
-    isPIDCar = false;
-    isSubaru = true;
-    isToyota = true;
-    isToyotaTuneSupported = true;
-    isVolt = true;
-  }
 
-  std::string liveTorqueParamsKey;
-  if (customizationLevel == 2) {
-    QString model = QString::fromStdString(params.get("ModelName"));
-    QString part_model_param = processModelName(model);
-    liveTorqueParamsKey = part_model_param.toStdString() + "LiveTorqueParameters";
-  } else {
-    liveTorqueParamsKey = "LiveTorqueParameters";
-  }
+    if (params.checkKey("LiveTorqueParameters")) {
+      std::string torqueParams = params.get("LiveTorqueParameters");
+      if (!torqueParams.empty()) {
+        capnp::FlatArrayMessageReader cmsgtp(aligned_buf.align(torqueParams.data(), torqueParams.size()));
+        cereal::Event::Reader LTP = cmsgtp.getRoot<cereal::Event>();
 
-  if (params.checkKey(liveTorqueParamsKey)) {
-    std::string torqueParams = params.get(liveTorqueParamsKey);
-    if (!torqueParams.empty()) {
-      AlignedBuffer aligned_buf;
-      capnp::FlatArrayMessageReader cmsg(aligned_buf.align(torqueParams.data(), torqueParams.size()));
-      cereal::Event::Reader LTP = cmsg.getRoot<cereal::Event>();
+        cereal::LiveTorqueParametersData::Reader liveTorqueParams = LTP.getLiveTorqueParameters();
 
-      cereal::LiveTorqueParametersData::Reader liveTorqueParams = LTP.getLiveTorqueParameters();
-
-      liveValid = liveTorqueParams.getLiveValid();
+        liveValid = liveTorqueParams.getLiveValid();
+      } else {
+        liveValid = false;
+      }
     } else {
       liveValid = false;
     }
-  } else {
-    liveValid = false;
-  }
 
-  emit updateCarToggles();
+    emit updateCarToggles();
+  }).detach();
 }
 
 void FrogPilotSettingsWindow::addPanelControl(FrogPilotListWidget *list, QString &title, QString &desc, std::vector<QString> &button_labels, QString &icon, std::vector<QWidget*> &panels, QString &currentPanel) {

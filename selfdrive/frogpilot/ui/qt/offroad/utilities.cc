@@ -7,7 +7,7 @@ UtilitiesPanel::UtilitiesPanel(FrogPilotSettingsWindow *parent) : FrogPilotListW
   QObject::connect(flashPandaBtn, &ButtonControl::clicked, [=]() {
     if (ConfirmationDialog::confirm(tr("Are you sure you want to flash the Panda?"), tr("Flash"), this)) {
       std::thread([=]() {
-        device()->resetInteractiveTimeout(300);
+        uiState()->scene.keep_screen_on = true;
 
         flashPandaBtn->setEnabled(false);
         flashPandaBtn->setValue(tr("Flashing..."));
@@ -50,7 +50,6 @@ UtilitiesPanel::UtilitiesPanel(FrogPilotSettingsWindow *parent) : FrogPilotListW
         resetTogglesBtn->setEnabled(false);
         resetTogglesBtn->setValue(tr("Resetting..."));
 
-        std::system("rm -rf /persist/params");
         params.putBool("DoToggleReset", true);
 
         resetTogglesBtn->setValue(tr("Reset!"));

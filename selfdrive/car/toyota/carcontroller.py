@@ -143,7 +143,7 @@ class CarController(CarControllerBase):
       interceptor_gas_cmd = 0.
 
     # For cars where we allow a higher max acceleration of 2.0 m/s^2, compensate for PCM request overshoot and imprecise braking
-    if (self.CP.flags & ToyotaFlags.RAISED_ACCEL_LIMIT or self.CP.flags & ToyotaFlags.NEW_TOYOTA_TUNE) and CC.longActive and not CS.out.cruiseState.standstill:
+    if self.CP.flags & ToyotaFlags.RAISED_ACCEL_LIMIT and CC.longActive and not CS.out.cruiseState.standstill:
       # calculate amount of acceleration PCM should apply to reach target, given pitch
       if len(CC.orientationNED) == 3:
         accel_due_to_pitch = math.sin(CC.orientationNED[1]) * ACCELERATION_DUE_TO_GRAVITY

@@ -3,12 +3,9 @@ import json
 import math
 
 from openpilot.common.numpy_fast import interp
-from openpilot.common.params import Params
 
 from openpilot.selfdrive.frogpilot.frogpilot_utilities import calculate_distance_to_point
-from openpilot.selfdrive.frogpilot.frogpilot_variables import TO_RADIANS
-
-params_memory = Params("/dev/shm/params")
+from openpilot.selfdrive.frogpilot.frogpilot_variables import TO_RADIANS, params_memory
 
 TARGET_JERK = -0.6   # m/s^3 should match up with the long planner
 TARGET_ACCEL = -1.2  # m/s^2 should match up with the long planner

@@ -51,7 +51,7 @@ struct FrogPilotPlan @0x80ae746ee2596b11 {
   accelerationJerkStock @1 :Float32;
   adjustedCruise @2 :Float32;
   dangerJerk @3 :Float32;
-  desiredFollowDistance @4 :Float32;
+  desiredFollowDistance @4 :Int64;
   experimentalMode @5 :Bool;
   forcingStop @6 :Bool;
   forcingStopLength @7 :Float32;

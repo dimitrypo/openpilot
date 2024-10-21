@@ -62,6 +62,8 @@ public:
   void updateState(int alert_height, const UIState &s);
 
   MapSettingsButton *map_settings_btn;
+
+  // FrogPilot variables
   MapSettingsButton *map_settings_btn_bottom;
 
 private:
@@ -107,7 +109,21 @@ private:
   PedalIcons *pedal_icons;
   ScreenRecorder *screenRecorder;
 
+  QElapsedTimer standstillTimer;
+
   QHBoxLayout *bottom_layout;
+
+  QPixmap stopSignImg;
+
+  QString accelerationUnit;
+  QString leadDistanceUnit;
+  QString leadSpeedUnit;
+  QString signalStyle;
+
+  QTimer *animationTimer;
+
+  QVector<QPixmap> blindspotImages;
+  QVector<QPixmap> signalImages;
 
   bool alwaysOnLateralActive;
   bool bigMapOpen;
@@ -118,6 +134,7 @@ private:
   bool hideMapIcon;
   bool hideMaxSpeed;
   bool hideSpeed;
+  bool hideSpeedLimit;
   bool leadInfo;
   bool mapOpen;
   bool onroadDistanceButton;
@@ -167,20 +184,6 @@ private:
   int statusBarHeight;
   int stoppedEquivalence;
   int totalFrames;
-
-  QElapsedTimer standstillTimer;
-
-  QPixmap stopSignImg;
-
-  QString accelerationUnit;
-  QString leadDistanceUnit;
-  QString leadSpeedUnit;
-  QString signalStyle;
-
-  QTimer *animationTimer;
-
-  QVector<QPixmap> blindspotImages;
-  QVector<QPixmap> signalImages;
 
   inline QColor blueColor(int alpha = 255) { return QColor(0, 150, 255, alpha); }
   inline QColor greenColor(int alpha = 242) { return QColor(23, 134, 68, alpha); }

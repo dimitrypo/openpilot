@@ -25,7 +25,7 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     {"TrafficJerkDeceleration", tr("Deceleration Sensitivity"), tr("Controls how sensitive openpilot is to changes in deceleration in 'Traffic' mode. Higher values result in smoother, more gradual deceleration, while lower values allow for quicker, more responsive changes that may feel abrupt."), ""},
     {"TrafficJerkDanger", tr("Safety Distance Sensitivity"), tr("Adjusts how cautious openpilot is around other vehicles or obstacles in 'Traffic' mode. Higher values increase following distances and prioritize safety, leading to more cautious driving, while lower values allow for closer following but may reduce reaction time."), ""},
     {"TrafficJerkSpeed", tr("Speed Increase Responsiveness"), tr("Controls how quickly openpilot increases speed in 'Traffic' mode. Higher values ensure smoother, more gradual speed changes when accelerating, while lower values allow for quicker, more responsive changes that may feel abrupt."), ""},
-    {"TrafficJerkSpeedDecrease", tr("Speed Decrease Responsiveness"), tr("Sets how quickly openpilot adjusts to decreasing speeds in 'Traffic' mode. Higher values ensure smoother, more gradual speed changes when slowing down, while lower values allow for quicker, more responsive changes that may feel abrupt."), ""},
+    {"TrafficJerkSpeedDecrease", tr("Speed Decrease Responsiveness"), tr("Controls how quickly openpilot decreases speed in 'Traffic' mode. Higher values ensure smoother, more gradual speed changes when slowing down, while lower values allow for quicker, more responsive changes that may feel abrupt."), ""},
     {"ResetTrafficPersonality", tr("Reset Settings"), tr("Restores the 'Traffic Mode' settings to their default values."), ""},
 
     {"AggressivePersonalityProfile", tr("Aggressive Personality"), tr("Customize the 'Aggressive' personality profile, designed for a more assertive driving style."), "../frogpilot/assets/stock_theme/distance_icons/aggressive.png"},
@@ -34,7 +34,7 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     {"AggressiveJerkDeceleration", tr("Deceleration Sensitivity"), tr("Controls how sensitive openpilot is to changes in deceleration in 'Aggressive' mode. Higher values result in smoother, more gradual deceleration, while lower values allow for quicker, more responsive changes that may feel abrupt.\n\nDefault: 0.5."), ""},
     {"AggressiveJerkDanger", tr("Safety Distance Sensitivity"), tr("Adjusts how cautious openpilot is around other vehicles or obstacles in 'Aggressive' mode. Higher values increase following distances and prioritize safety, leading to more cautious driving, while lower values allow for closer following but may reduce reaction time.\n\nDefault: 1.0."), ""},
     {"AggressiveJerkSpeed", tr("Speed Increase Responsiveness"), tr("Controls how quickly openpilot increases speed in 'Aggressive' mode. Higher values ensure smoother, more gradual speed changes when accelerating, while lower values allow for quicker, more responsive changes that may feel abrupt.\n\nDefault: 0.5."), ""},
-    {"AggressiveJerkSpeedDecrease", tr("Speed Decrease Responsiveness"), tr("Sets how quickly openpilot adjusts to decreasing speeds in 'Aggressive' mode. Higher values ensure smoother, more gradual speed changes when slowing down, while lower values allow for quicker, more responsive changes that may feel abrupt.\n\nDefault: 0.5."), ""},
+    {"AggressiveJerkSpeedDecrease", tr("Speed Decrease Responsiveness"), tr("Controls how quickly openpilot decreases speed in 'Aggressive' mode. Higher values ensure smoother, more gradual speed changes when slowing down, while lower values allow for quicker, more responsive changes that may feel abrupt.\n\nDefault: 0.5."), ""},
     {"ResetAggressivePersonality", tr("Reset Settings"), tr("Restores the 'Aggressive' settings to their default values."), ""},
 
     {"StandardPersonalityProfile", tr("Standard Personality"), tr("Customize the 'Standard' personality profile, optimized for balanced driving."), "../frogpilot/assets/stock_theme/distance_icons/standard.png"},
@@ -43,7 +43,7 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     {"StandardJerkDeceleration", tr("Deceleration Sensitivity"), tr("Controls how sensitive openpilot is to changes in deceleration in 'Standard' mode. Higher values result in smoother braking, while lower values allow for quicker, more immediate braking that may feel abrupt.\n\nDefault: 1.0."), ""},
     {"StandardJerkDanger", tr("Safety Distance Sensitivity"), tr("Adjusts how cautious openpilot is around other vehicles or obstacles in 'Standard' mode. Higher values increase following distances and prioritize safety, leading to more cautious driving, while lower values allow for closer following but may reduce reaction time.\n\nDefault: 1.0."), ""},
     {"StandardJerkSpeed", tr("Speed Increase Responsiveness"), tr("Controls how quickly openpilot increases speed in 'Standard' mode. Higher values ensure smoother, more gradual speed changes when accelerating, while lower values allow for quicker, more responsive changes that may feel abrupt.\n\nDefault: 1.0."), ""},
-    {"StandardJerkSpeedDecrease", tr("Speed Decrease Responsiveness"), tr("Sets how quickly openpilot adjusts to decreasing speeds in 'Standard' mode. Higher values ensure smoother, more gradual speed changes when slowing down, while lower values allow for quicker, more responsive changes that may feel abrupt.\n\nDefault: 1.0."), ""},
+    {"StandardJerkSpeedDecrease", tr("Speed Decrease Responsiveness"), tr("Controls how quickly openpilot decreases speed in 'Standard' mode. Higher values ensure smoother, more gradual speed changes when slowing down, while lower values allow for quicker, more responsive changes that may feel abrupt.\n\nDefault: 1.0."), ""},
     {"ResetStandardPersonality", tr("Reset Settings"), tr("Restores the 'Standard' settings to their default values."), ""},
 
     {"RelaxedPersonalityProfile", tr("Relaxed Personality"), tr("Customize the 'Relaxed' personality profile, ideal for a more laid-back driving style."), "../frogpilot/assets/stock_theme/distance_icons/relaxed.png"},
@@ -52,7 +52,7 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     {"RelaxedJerkDeceleration", tr("Deceleration Sensitivity"), tr("Controls how sensitive openpilot is to changes in deceleration in 'Relaxed' mode. Higher values result in smoother braking, while lower values allow for quicker, more immediate braking that may feel abrupt.\n\nDefault: 1.0."), ""},
     {"RelaxedJerkDanger", tr("Safety Distance Sensitivity"), tr("Adjusts how cautious openpilot is around other vehicles or obstacles in 'Relaxed' mode. Higher values increase following distances and prioritize safety, leading to more cautious driving, while lower values allow for closer following but may reduce reaction time.\n\nDefault: 1.0."), ""},
     {"RelaxedJerkSpeed", tr("Speed Increase Responsiveness"), tr("Controls how quickly openpilot increases speed in 'Relaxed' mode. Higher values ensure smoother, more gradual speed changes when accelerating, while lower values allow for quicker, more responsive changes that may feel abrupt.\n\nDefault: 1.0."), ""},
-    {"RelaxedJerkSpeedDecrease", tr("Speed Decrease Responsiveness"), tr("Sets how quickly openpilot adjusts to decreasing speeds in 'Relaxed' mode. Higher values ensure smoother, more gradual speed changes when slowing down, while lower values allow for quicker, more responsive changes that may feel abrupt.\n\nDefault: 1.0."), ""},
+    {"RelaxedJerkSpeedDecrease", tr("Speed Decrease Responsiveness"), tr("Controls how quickly openpilot decreases speed in 'Relaxed' mode. Higher values ensure smoother, more gradual speed changes when slowing down, while lower values allow for quicker, more responsive changes that may feel abrupt.\n\nDefault: 1.0."), ""},
     {"ResetRelaxedPersonality", tr("Reset Settings"), tr("Restores the 'Relaxed' settings to their default values."), ""},
 
     {"ExperimentalModeActivation", tr("Experimental Mode Activation"), tr("Toggle 'Experimental Mode' on/off using either the steering wheel buttons or screen.\n\nThis overrides 'Conditional Experimental Mode'."), "../assets/img_experimental_white.svg"},
@@ -64,16 +64,17 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     {"AccelerationProfile", tr("Acceleration Profile"), tr("Enables either a sporty or eco-friendly acceleration rate. 'Sport+' aims to make openpilot accelerate as fast as possible."), ""},
     {"DecelerationProfile", tr("Deceleration Profile"), tr("Enables either a sporty or eco-friendly deceleration rate."), ""},
     {"HumanAcceleration", tr("Human-Like Acceleration"), tr("Uses the lead's acceleration rate when at a takeoff and ramps off the acceleration rate when approaching the maximum set speed for a more 'human-like' driving experience."), ""},
-    {"HumanFollowing", tr("Human-Like Following Distance"), tr("Dynamically adjusts the following distance when approaching slower or stopped vehicles for a more 'human-like' driving experience."), ""},
-    {"IncreasedStoppedDistance", tr("Increase Stopped Distance"), tr("Increases the distance to stop behind vehicles."), ""},
+    {"HumanFollowing", tr("Human-Like Approach Behind Leads"), tr("Dynamically adjusts the following distance when approaching slower or stopped vehicles for a more 'human-like' driving experience."), ""},
     {"LeadDetectionThreshold", tr("Lead Detection Confidence"), tr("Controls how sensitive openpilot is to detecting vehicles ahead. A lower value can help detect vehicles sooner and from farther away, but increases the chance openpilot mistakes other objects for vehicles."), ""},
     {"MaxDesiredAcceleration", tr("Maximum Acceleration Rate"), tr("Sets a cap on how fast openpilot can accelerate."), ""},
+    {"TacoTune", tr("'Taco Bell Run' Turn Speed Hack"), tr("Uses comma's speed hack they used to help handle left and right turns more precisely during their 2022 'Taco Bell' drive by reducing the maximum allowed speed and acceleration while turning."), ""},
 
     {"QOLLongitudinal", tr("Quality of Life Improvements"), tr("Miscellaneous longitudinal focused features to improve your overall openpilot experience."), "../frogpilot/assets/toggle_icons/quality_of_life.png"},
     {"CustomCruise", tr("Cruise Increase Interval"), tr("Controls the interval used when increasing the cruise control speed."), ""},
     {"CustomCruiseLong", tr("Custom Cruise Interval (Long Press)"), tr("Controls the interval used when increasing the cruise control speed while holding down the button for 0.5+ seconds."), ""},
     {"ForceStandstill", tr("Force Keep openpilot in the Standstill State"), tr("Keeps openpilot in the 'standstill' state until the gas pedal or 'resume' button is pressed."), ""},
     {"ForceStops", tr("Force Stop for 'Detected' Stop Lights/Signs"), tr("Forces a stop whenever openpilot 'detects' a potential red light/stop sign to prevent it from running the red light/stop sign."), ""},
+    {"IncreasedStoppedDistance", tr("Increase Stopped Distance"), tr("Increases the distance to stop behind vehicles."), ""},
     {"SetSpeedOffset", tr("Set Speed Offset"), tr("Controls how much higher or lower the set speed should be compared to your current set speed. For example, if you prefer to drive 5 mph above the speed limit, this setting will automatically add that difference when you adjust your set speed."), ""},
     {"MapGears", tr("Map Accel/Decel to Gears"), tr("Maps the acceleration and deceleration profiles to your car's 'Eco' or 'Sport' gear modes."), ""},
     {"ReverseCruise", tr("Reverse Cruise Increase"), tr("Reverses the long press cruise increase feature to increase the max speed by 5 mph instead of 1 on short presses."), ""},
@@ -87,7 +88,7 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     {"SLCLookaheadHigher", tr("Prepare for Higher Speed Limits"), tr("Sets a lookahead value to prepare for upcoming higher speed limits when using downloaded map data."), ""},
     {"SLCLookaheadLower", tr("Prepare for Lower Speed Limits"), tr("Sets a lookahead value to prepare for upcoming lower speed limits when using downloaded map data."), ""},
     {"SetSpeedLimit", tr("Set Speed to Current Limit"), tr("Sets your max speed to match the current speed limit when enabling openpilot."), ""},
-    {"SLCPriority", tr("Speed Limit Source Priority"), tr("Sets the order of priority for speed limit data sources."), ""},
+    {"SLCPriority", tr("Speed Limit Source Priority Order"), tr("Sets the order of priority for speed limit data sources."), ""},
     {"SLCOffsets", tr("Speed Limit Offsets"), tr("Set speed limit offsets to drive over the posted speed limit."), ""},
     {"Offset1", tr("Speed Limit Offset (0-34 mph)"), tr("Sets the speed limit offset for speeds between 0 and 34 mph."), ""},
     {"Offset2", tr("Speed Limit Offset (35-54 mph)"), tr("Sets the speed limit offset for speeds between 35 and 54 mph."), ""},
@@ -270,7 +271,6 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
         if (customizationLevel == 0) {
           modifiedLongitudinalTuneKeys.erase("HumanAcceleration");
           modifiedLongitudinalTuneKeys.erase("HumanFollowing");
-          modifiedLongitudinalTuneKeys.erase("IncreasedStoppedDistance");
           modifiedLongitudinalTuneKeys.erase("LeadDetectionThreshold");
           modifiedLongitudinalTuneKeys.erase("MaxDesiredAcceleration");
         } else if (customizationLevel == 1) {
@@ -291,8 +291,6 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
       std::vector<QString> decelerationProfiles{tr("Standard"), tr("Eco"), tr("Sport")};
       ButtonParamControl *decelerationProfileToggle = new ButtonParamControl(param, title, desc, icon, decelerationProfiles);
       longitudinalToggle = decelerationProfileToggle;
-    } else if (param == "IncreasedStoppedDistance") {
-      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 10, tr(" feet"));
     } else if (param == "LeadDetectionThreshold") {
       longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 99, "%");
     } else if (param == "MaxDesiredAcceleration") {
@@ -329,6 +327,8 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
       longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 99, tr("mph"));
     } else if (param == "CustomCruiseLong") {
       longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 99, tr("mph"));
+    } else if (param == "IncreasedStoppedDistance") {
+      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 10, tr(" feet"));
     } else if (param == "MapGears") {
       std::vector<QString> mapGearsToggles{"MapAcceleration", "MapDeceleration"};
       std::vector<QString> mapGearsToggleNames{tr("Acceleration"), tr("Deceleration")};
@@ -458,7 +458,7 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
       });
       longitudinalToggle = reinterpret_cast<AbstractControl*>(manageSLCQOLBtn);
     } else if (param == "SLCLookaheadHigher" || param == "SLCLookaheadLower") {
-      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 60, tr(" seconds"));
+      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 30, tr(" seconds"));
     } else if (param == "Offset1" || param == "Offset2" || param == "Offset3" || param == "Offset4") {
       longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, -99, 99, tr("mph"));
 

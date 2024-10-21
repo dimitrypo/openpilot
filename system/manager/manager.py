@@ -11,12 +11,9 @@ from types import SimpleNamespace
 from cereal import log
 import cereal.messaging as messaging
 import openpilot.system.sentry as sentry
-from openpilot.common.conversions import Conversions as CV
 from openpilot.common.params import Params, ParamKeyType
 from openpilot.common.text_window import TextWindow
-from openpilot.selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
 from openpilot.system.hardware import HARDWARE, PC
-from openpilot.system.hardware.power_monitoring import VBATT_PAUSE_CHARGING
 from openpilot.system.manager.helpers import unblock_stdout, write_onroad_params, save_bootlog
 from openpilot.system.manager.process import ensure_running
 from openpilot.system.manager.process_config import managed_processes
@@ -25,7 +22,7 @@ from openpilot.common.swaglog import cloudlog, add_file_handler
 from openpilot.system.version import get_build_metadata, terms_version, training_version
 
 from openpilot.selfdrive.frogpilot.frogpilot_functions import convert_params, frogpilot_boot_functions, setup_frogpilot, uninstall_frogpilot
-from openpilot.selfdrive.frogpilot.frogpilot_variables import FrogPilotVariables, frogpilot_default_params, get_frogpilot_toggles
+from openpilot.selfdrive.frogpilot.frogpilot_variables import frogpilot_default_params, get_frogpilot_toggles, params_memory
 
 
 def manager_init() -> None:
@@ -70,7 +67,7 @@ def manager_init() -> None:
     ("RecordFront", "0"),
     ("SshEnabled", "0"),
     ("TetheringEnabled", "0"),
-    ("LongitudinalPersonality", str(log.LongitudinalPersonality.standard))
+    ("LongitudinalPersonality", str(log.LongitudinalPersonality.standard)),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
@@ -79,16 +76,16 @@ def manager_init() -> None:
     params.put_bool("RecordFront", True)
 
   # set unset params
+  reset_toggles = params.get_bool("DoToggleReset")
   for k, v in default_params + frogpilot_default_params:
-    if params.get(k) is None or params.get_bool("DoToggleReset"):
-      if params_storage.get(k) is None:
-        params.put(k, v)
+    if params.get(k) is None or reset_toggles:
+      if params_storage.get(k) is None or reset_toggles:
+        params.put(k, v if isinstance(v, bytes) else str(v).encode('utf-8'))
       else:
         params.put(k, params_storage.get(k))
     else:
       params_storage.put(k, params.get(k))
-
-  params.put_bool_nonblocking("DoToggleReset", False)
+  params.remove("DoToggleReset")
 
   # Create folders needed for msgq
   try:
@@ -157,7 +154,6 @@ def manager_thread() -> None:
   cloudlog.info({"environ": os.environ})
 
   params = Params()
-  params_memory = Params("/dev/shm/params")
 
   ignore: list[str] = []
   if params.get("DongleId", encoding='utf8') in (None, UNREGISTERED_DONGLE_ID):
@@ -170,13 +166,13 @@ def manager_thread() -> None:
   pm = messaging.PubMaster(['managerState'])
 
   write_onroad_params(False, params)
-  ensure_running(managed_processes.values(), False, params=params, CP=sm['carParams'], not_run=ignore, classic_model=False, frogpilot_toggles=SimpleNamespace())
+  ensure_running(managed_processes.values(), False, params=params, CP=sm['carParams'], not_run=ignore, classic_model=False, frogpilot_toggles=get_frogpilot_toggles())
 
   started_prev = False
 
   # FrogPilot variables
-  FrogPilotVariables().update(False)
-  frogpilot_toggles = get_frogpilot_toggles(True)
+  frogpilot_toggles = get_frogpilot_toggles()
+
   classic_model = frogpilot_toggles.classic_model
 
   while True:

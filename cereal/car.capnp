@@ -84,6 +84,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     startup @75;
     startupNoCar @76;
     startupNoControl @77;
+    startupNoSecOcKey @149;
     startupMaster @78;
     startupNoFw @104;
     fcw @79;
@@ -547,6 +548,9 @@ struct CarParams {
   networkLocation @50 :NetworkLocation;  # Where Panda/C2 is integrated into the car's CAN network
 
   wheelSpeedFactor @63 :Float32; # Multiplier on wheels speeds to computer actual speeds
+
+  secOcRequired @74 :Bool;  # Car requires SecOC message authentication to operate
+  secOcKeyAvailable @75 :Bool;  # Stored SecOC key loaded from params
 
   struct SafetyConfig {
     safetyModel @0 :SafetyModel;

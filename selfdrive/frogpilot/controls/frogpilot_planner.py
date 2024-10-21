@@ -1,7 +1,6 @@
 import cereal.messaging as messaging
 
 from openpilot.common.conversions import Conversions as CV
-from openpilot.common.params import Params
 
 from openpilot.selfdrive.controls.lib.drive_helpers import V_CRUISE_UNSET
 from openpilot.selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import A_CHANGE_COST, DANGER_ZONE_COST, J_EGO_COST, STOP_DISTANCE
@@ -17,8 +16,6 @@ from openpilot.selfdrive.frogpilot.frogpilot_variables import CRUISING_SPEED, MO
 
 class FrogPilotPlanner:
   def __init__(self):
-    self.params_memory = Params("/dev/shm/params")
-
     self.cem = ConditionalExperimentalMode(self)
     self.frogpilot_acceleration = FrogPilotAcceleration(self)
     self.frogpilot_events = FrogPilotEvents(self)
@@ -41,7 +38,7 @@ class FrogPilotPlanner:
     if radarless_model:
       model_leads = list(modelData.leadsV3)
       if len(model_leads) > 0:
-        distance_offset = max(frogpilot_toggles.increased_stopped_distance + min(10 - v_ego, 0), 0) if not frogpilotCarState.trafficModeActive else 0
+        distance_offset = frogpilot_toggles.increased_stopped_distance if not frogpilotCarState.trafficModeActive else 0
         model_lead = model_leads[0]
         self.lead_one.update(model_lead.x[0] - distance_offset, model_lead.y[0], model_lead.v[0], model_lead.a[0], model_lead.prob)
       else:

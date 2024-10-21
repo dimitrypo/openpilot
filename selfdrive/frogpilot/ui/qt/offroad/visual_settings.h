@@ -27,7 +27,8 @@ private:
 
   std::set<QString> advancedCustomOnroadUIKeys = {
     "HideAlerts", "HideLeadMarker", "HideMapIcon",
-    "HideMaxSpeed", "HideSpeed", "WheelSpeed"
+    "HideMaxSpeed", "HideSpeed", "HideSpeedLimit",
+    "WheelSpeed"
   };
 
   std::set<QString> customOnroadUIKeys = {

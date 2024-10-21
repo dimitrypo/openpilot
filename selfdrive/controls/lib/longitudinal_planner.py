@@ -162,8 +162,8 @@ class LongitudinalPlanner:
   @staticmethod
   def parse_model(model_msg, model_error, v_ego, taco_tune):
     if (len(model_msg.position.x) == ModelConstants.IDX_N and
-       len(model_msg.velocity.x) == ModelConstants.IDX_N and
-       len(model_msg.acceleration.x) == ModelConstants.IDX_N):
+      len(model_msg.velocity.x) == ModelConstants.IDX_N and
+      len(model_msg.acceleration.x) == ModelConstants.IDX_N):
       x = np.interp(T_IDXS_MPC, ModelConstants.T_IDXS, model_msg.position.x) - model_error * T_IDXS_MPC
       v = np.interp(T_IDXS_MPC, ModelConstants.T_IDXS, model_msg.velocity.x) - model_error
       a = np.interp(T_IDXS_MPC, ModelConstants.T_IDXS, model_msg.acceleration.x)

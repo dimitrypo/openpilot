@@ -1,23 +1,18 @@
 # PFEIFER - SLC - Modified by FrogAi for FrogPilot
 import json
 
-from openpilot.common.params import Params
-
 from openpilot.selfdrive.frogpilot.frogpilot_utilities import calculate_distance_to_point
-from openpilot.selfdrive.frogpilot.frogpilot_variables import TO_RADIANS
+from openpilot.selfdrive.frogpilot.frogpilot_variables import TO_RADIANS, params, params_memory
 
 class SpeedLimitController:
   def __init__(self):
-    self.params = Params()
-    self.params_memory = Params("/dev/shm/params")
-
     self.experimental_mode = False
 
     self.desired_speed_limit = 0
     self.offset = 0
     self.speed_limit = 0
 
-    self.previous_speed_limit = self.params.get_float("PreviousSpeedLimit")
+    self.previous_speed_limit = params.get_float("PreviousSpeedLimit")
 
   def update(self, dashboard_speed_limit, enabled, navigation_speed_limit, v_cruise, v_ego, frogpilot_toggles):
     map_speed_limit = self.get_map_speed_limit(v_ego, frogpilot_toggles)
@@ -32,20 +27,20 @@ class SpeedLimitController:
   def get_desired_speed_limit(self):
     if self.speed_limit > 1:
       if self.previous_speed_limit != self.speed_limit:
-        self.params.put_float_nonblocking("PreviousSpeedLimit", self.speed_limit)
+        params.put_float_nonblocking("PreviousSpeedLimit", self.speed_limit)
         self.previous_speed_limit = self.speed_limit
       return self.speed_limit + self.offset
     return 0
 
   def get_map_speed_limit(self, v_ego, frogpilot_toggles):
-    map_speed_limit = self.params_memory.get_float("MapSpeedLimit")
+    map_speed_limit = params_memory.get_float("MapSpeedLimit")
 
-    next_map_speed_limit = json.loads(self.params_memory.get("NextMapSpeedLimit", "{}"))
+    next_map_speed_limit = json.loads(params_memory.get("NextMapSpeedLimit", "{}"))
     next_map_speed_limit_lat = next_map_speed_limit.get("latitude", 0)
     next_map_speed_limit_lon = next_map_speed_limit.get("longitude", 0)
     next_map_speed_limit_value = next_map_speed_limit.get("speedlimit", 0)
 
-    position = json.loads(self.params_memory.get("LastGPSPosition", "{}"))
+    position = json.loads(params_memory.get("LastGPSPosition", "{}"))
     lat = position.get("latitude", 0)
     lon = position.get("longitude", 0)
 

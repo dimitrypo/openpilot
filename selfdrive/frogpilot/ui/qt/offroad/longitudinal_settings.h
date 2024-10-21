@@ -50,14 +50,14 @@ private:
 
   std::set<QString> longitudinalTuneKeys = {
     "AccelerationProfile", "DecelerationProfile", "HumanAcceleration",
-    "HumanFollowing", "IncreasedStoppedDistance", "LeadDetectionThreshold",
-    "MaxDesiredAcceleration"
+    "HumanFollowing", "LeadDetectionThreshold", "MaxDesiredAcceleration",
+    "TacoTune"
   };
 
   std::set<QString> qolKeys = {
     "CustomCruise", "CustomCruiseLong", "ForceStandstill",
-    "ForceStops", "MapGears", "ReverseCruise",
-    "SetSpeedOffset"
+    "ForceStops", "IncreasedStoppedDistance", "MapGears",
+    "ReverseCruise", "SetSpeedOffset"
   };
 
   std::set<QString> relaxedPersonalityKeys = {

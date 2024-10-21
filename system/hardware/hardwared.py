@@ -25,7 +25,7 @@ from openpilot.system.hardware.power_monitoring import PowerMonitoring
 from openpilot.system.hardware.fan_controller import TiciFanController
 from openpilot.system.version import terms_version, training_version
 
-from openpilot.selfdrive.frogpilot.frogpilot_variables import get_frogpilot_toggles
+from openpilot.selfdrive.frogpilot.frogpilot_variables import get_frogpilot_toggles, params_memory
 
 ThermalStatus = log.DeviceState.ThermalStatus
 NetworkType = log.DeviceState.NetworkType
@@ -207,9 +207,7 @@ def hardware_thread(end_event, hw_queue) -> None:
   fan_controller = None
 
   # FrogPilot variables
-  frogpilot_toggles = get_frogpilot_toggles(True)
-
-  params_memory = Params("/dev/shm/params")
+  frogpilot_toggles = get_frogpilot_toggles()
 
   while not end_event.is_set():
     sm.update(PANDA_STATES_TIMEOUT)

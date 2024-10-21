@@ -4,23 +4,22 @@ import os
 import re
 import requests
 import shutil
+import time
 import zipfile
 
 from datetime import date, timedelta
 from dateutil import easter
 
 from openpilot.common.basedir import BASEDIR
-from openpilot.common.params import Params
 
 from openpilot.selfdrive.frogpilot.assets.download_functions import GITHUB_URL, GITLAB_URL, download_file, get_repository_url, handle_error, handle_request_error, verify_download
-from openpilot.selfdrive.frogpilot.frogpilot_functions import ACTIVE_THEME_PATH, THEME_SAVE_PATH
-from openpilot.selfdrive.frogpilot.frogpilot_utilities import update_frogpilot_toggles
+from openpilot.selfdrive.frogpilot.frogpilot_variables import ACTIVE_THEME_PATH, THEME_SAVE_PATH, params, params_memory, update_frogpilot_toggles
 
 CANCEL_DOWNLOAD_PARAM = "CancelThemeDownload"
 DOWNLOAD_PROGRESS_PARAM = "ThemeDownloadProgress"
 
 
-def update_theme_asset(asset_type, theme, holiday_theme, params):
+def update_theme_asset(asset_type, theme, holiday_theme):
   save_location = os.path.join(ACTIVE_THEME_PATH, asset_type)
 
   if holiday_theme:
@@ -81,16 +80,15 @@ def update_wheel_image(image, holiday_theme=None, random_event=True):
 
 class ThemeManager:
   def __init__(self):
-    self.params = Params()
-    self.params_memory = Params("/dev/shm/params")
-
     self.previous_assets = {}
 
   @staticmethod
   def calculate_thanksgiving(year):
     november_first = date(year, 11, 1)
-    day_of_week = november_first.weekday()
-    return november_first + timedelta(days=(3 - day_of_week + 21) % 7 + 21)
+    days_to_thursday = (3 - november_first.weekday()) % 7
+    first_thursday = november_first + timedelta(days=days_to_thursday)
+    thanksgiving_date = first_thursday + timedelta(days=21)
+    return thanksgiving_date
 
   @staticmethod
   def is_within_week_of(target_date, now):
@@ -195,30 +193,30 @@ class ThemeManager:
     for holiday, holiday_date in holidays.items():
       if (holiday.endswith("_week") and self.is_within_week_of(holiday_date, now)) or (now == holiday_date):
         if holiday != self.previous_assets.get("holiday_theme"):
-          self.params.put("CurrentHolidayTheme", holiday)
-          self.params_memory.put_bool("UpdateTheme", True)
+          params.put("CurrentHolidayTheme", holiday)
+          params_memory.put_bool("UpdateTheme", True)
         return
 
     if "holiday_theme" in self.previous_assets:
-      self.params.remove("CurrentHolidayTheme")
-      self.params_memory.put_bool("UpdateTheme", True)
+      params.remove("CurrentHolidayTheme")
+      params_memory.put_bool("UpdateTheme", True)
       self.previous_assets.pop("holiday_theme")
 
   def update_active_theme(self):
     if not os.path.exists(THEME_SAVE_PATH):
       return
 
-    holiday_themes = self.params.get_bool("HolidayThemes")
-    current_holiday_theme = self.params.get("CurrentHolidayTheme", encoding='utf-8') if holiday_themes else None
+    holiday_themes = params.get_bool("HolidayThemes")
+    current_holiday_theme = params.get("CurrentHolidayTheme", encoding='utf-8') if holiday_themes else None
 
-    if not current_holiday_theme and self.params.get_bool("PersonalizeOpenpilot"):
+    if not current_holiday_theme and params.get_bool("PersonalizeOpenpilot"):
       asset_mappings = {
-        "color_scheme": ("colors", self.params.get("CustomColors", encoding='utf-8')),
-        "distance_icons": ("distance_icons", self.params.get("CustomDistanceIcons", encoding='utf-8')),
-        "icon_pack": ("icons", self.params.get("CustomIcons", encoding='utf-8')),
-        "sound_pack": ("sounds", self.params.get("CustomSounds", encoding='utf-8')),
-        "turn_signal_pack": ("signals", self.params.get("CustomSignals", encoding='utf-8')),
-        "wheel_image": ("wheel_image", self.params.get("WheelIcon", encoding='utf-8'))
+        "color_scheme": ("colors", params.get("CustomColors", encoding='utf-8')),
+        "distance_icons": ("distance_icons", params.get("CustomDistanceIcons", encoding='utf-8')),
+        "icon_pack": ("icons", params.get("CustomIcons", encoding='utf-8')),
+        "sound_pack": ("sounds", params.get("CustomSounds", encoding='utf-8')),
+        "turn_signal_pack": ("signals", params.get("CustomSignals", encoding='utf-8')),
+        "wheel_image": ("wheel_image", params.get("WheelIcon", encoding='utf-8'))
       }
     else:
       asset_mappings = {
@@ -238,7 +236,7 @@ class ThemeManager:
         if asset_type == "wheel_image":
           update_wheel_image(current_value, current_holiday_theme, random_event=False)
         else:
-          update_theme_asset(asset_type, current_value, current_holiday_theme, self.params)
+          update_theme_asset(asset_type, current_value, current_holiday_theme)
 
         self.previous_assets[asset] = current_value
         theme_changed = True
@@ -246,7 +244,7 @@ class ThemeManager:
     if theme_changed:
       if current_holiday_theme:
         self.previous_assets["holiday_theme"] = current_holiday_theme
-      self.params_memory.put_bool("ThemeUpdated", True)
+      time.sleep(5)
       update_frogpilot_toggles()
 
   def extract_zip(self, zip_file, extract_path):
@@ -254,12 +252,12 @@ class ThemeManager:
     with zipfile.ZipFile(zip_file, 'r') as zip_ref:
       zip_ref.extractall(extract_path)
     os.remove(zip_file)
-    print(f"Extraction completed and zip file deleted.")
+    print(f"Extraction completed and zip file deleted")
 
   def handle_existing_theme(self, theme_name, theme_param):
     print(f"Theme {theme_name} already exists, skipping download...")
-    self.params_memory.put(DOWNLOAD_PROGRESS_PARAM, "Theme already exists...")
-    self.params_memory.remove(theme_param)
+    params_memory.put(DOWNLOAD_PROGRESS_PARAM, "Theme already exists...")
+    params_memory.remove(theme_param)
 
   def handle_verification_failure(self, extensions, theme_component, theme_name, theme_param, download_path):
     if theme_component == "distance_icons":
@@ -274,24 +272,24 @@ class ThemeManager:
       temp_theme_path = f"{os.path.splitext(theme_path)[0]}_temp{ext}"
       theme_url = download_link + ext
       print(f"Downloading theme from GitLab: {theme_name}")
-      download_file(CANCEL_DOWNLOAD_PARAM, theme_path, temp_theme_path, DOWNLOAD_PROGRESS_PARAM, theme_url, theme_param, self.params_memory)
+      download_file(CANCEL_DOWNLOAD_PARAM, theme_path, temp_theme_path, DOWNLOAD_PROGRESS_PARAM, theme_url, theme_param, params_memory)
 
       if verify_download(theme_path, temp_theme_path, theme_url):
         print(f"Theme {theme_name} downloaded and verified successfully from GitLab!")
         if ext == ".zip":
-          self.params_memory.put(DOWNLOAD_PROGRESS_PARAM, "Unpacking theme...")
+          params_memory.put(DOWNLOAD_PROGRESS_PARAM, "Unpacking theme...")
           self.extract_zip(theme_path, os.path.join(THEME_SAVE_PATH, theme_name))
-        self.params_memory.put(DOWNLOAD_PROGRESS_PARAM, "Downloaded!")
-        self.params_memory.remove(theme_param)
+        params_memory.put(DOWNLOAD_PROGRESS_PARAM, "Downloaded!")
+        params_memory.remove(theme_param)
         return True
 
-    handle_error(download_path, "GitLab verification failed", "Verification failed", theme_param, DOWNLOAD_PROGRESS_PARAM, self.params_memory)
+    handle_error(download_path, "GitLab verification failed", "Verification failed", theme_param, DOWNLOAD_PROGRESS_PARAM, params_memory)
     return False
 
   def download_theme(self, theme_component, theme_name, theme_param):
     repo_url = get_repository_url()
     if not repo_url:
-      handle_error(None, "GitHub and GitLab are offline...", "Repository unavailable", theme_param, DOWNLOAD_PROGRESS_PARAM, self.params_memory)
+      handle_error(None, "GitHub and GitLab are offline...", "Repository unavailable", theme_param, DOWNLOAD_PROGRESS_PARAM, params_memory)
       return
 
     if theme_component == "distance_icons":
@@ -312,20 +310,20 @@ class ThemeManager:
       temp_theme_path = f"{os.path.splitext(theme_path)[0]}_temp{ext}"
 
       if os.path.isfile(theme_path):
-        handle_error(theme_path, "Theme already exists...", "Theme already exists...", theme_param, DOWNLOAD_PROGRESS_PARAM, self.params_memory)
+        handle_error(theme_path, "Theme already exists...", "Theme already exists...", theme_param, DOWNLOAD_PROGRESS_PARAM, params_memory)
         return
 
       theme_url = download_link + ext
       print(f"Downloading theme from GitHub: {theme_name}")
-      download_file(CANCEL_DOWNLOAD_PARAM, theme_path, temp_theme_path, DOWNLOAD_PROGRESS_PARAM, theme_url, theme_param, self.params_memory)
+      download_file(CANCEL_DOWNLOAD_PARAM, theme_path, temp_theme_path, DOWNLOAD_PROGRESS_PARAM, theme_url, theme_param, params_memory)
 
       if verify_download(theme_path, temp_theme_path, theme_url):
         print(f"Theme {theme_name} downloaded and verified successfully from GitHub!")
         if ext == ".zip":
-          self.params_memory.put(DOWNLOAD_PROGRESS_PARAM, "Unpacking theme...")
+          params_memory.put(DOWNLOAD_PROGRESS_PARAM, "Unpacking theme...")
           self.extract_zip(theme_path, download_path)
-        self.params_memory.put(DOWNLOAD_PROGRESS_PARAM, "Downloaded!")
-        self.params_memory.remove(theme_param)
+        params_memory.put(DOWNLOAD_PROGRESS_PARAM, "Downloaded!")
+        params_memory.remove(theme_param)
         return
 
     self.handle_verification_failure(extensions, theme_component, theme_name, theme_param, download_path)
@@ -339,27 +337,27 @@ class ThemeManager:
       }
       return sorted(set(assets) - existing_themes)
 
-    self.params.put("DownloadableColors", ','.join(filter_existing_assets(downloadable_colors, "colors")))
-    print("Colors list updated successfully.")
+    params.put("DownloadableColors", ','.join(filter_existing_assets(downloadable_colors, "colors")))
+    print("Colors list updated successfully")
 
     distance_icons_directory = os.path.join(THEME_SAVE_PATH, "distance_icons")
-    self.params.put("DownloadableDistanceIcons", ','.join(sorted(set(downloadable_distance_icons) - {
+    params.put("DownloadableDistanceIcons", ','.join(sorted(set(downloadable_distance_icons) - {
         distance_icons.replace('_', ' ').split('.')[0].title()
         for distance_icons in os.listdir(distance_icons_directory)
       }))
     )
 
-    self.params.put("DownloadableIcons", ','.join(filter_existing_assets(downloadable_icons, "icons")))
-    print("Icons list updated successfully.")
+    params.put("DownloadableIcons", ','.join(filter_existing_assets(downloadable_icons, "icons")))
+    print("Icons list updated successfully")
 
-    self.params.put("DownloadableSignals", ','.join(filter_existing_assets(downloadable_signals, "signals")))
-    print("Signals list updated successfully.")
+    params.put("DownloadableSignals", ','.join(filter_existing_assets(downloadable_signals, "signals")))
+    print("Signals list updated successfully")
 
-    self.params.put("DownloadableSounds", ','.join(filter_existing_assets(downloadable_sounds, "sounds")))
-    print("Sounds list updated successfully.")
+    params.put("DownloadableSounds", ','.join(filter_existing_assets(downloadable_sounds, "sounds")))
+    print("Sounds list updated successfully")
 
     wheel_directory = os.path.join(THEME_SAVE_PATH, "steering_wheels")
-    self.params.put("DownloadableWheels", ','.join(sorted(set(downloadable_wheels) - {
+    params.put("DownloadableWheels", ','.join(sorted(set(downloadable_wheels) - {
         wheel.replace('_', ' ').split('.')[0].title()
         for wheel in os.listdir(wheel_directory) if wheel != "img_chffr_wheel.png"
       }))
@@ -376,7 +374,7 @@ class ThemeManager:
     }
 
     for theme_param, theme_component in asset_mappings.items():
-      theme_name = self.params.get(theme_param, encoding='utf-8')
+      theme_name = params.get(theme_param, encoding='utf-8')
       if not theme_name or theme_name == "stock":
         continue
 
@@ -397,7 +395,6 @@ class ThemeManager:
         print(f"{theme_name} for {theme_component} not found. Downloading...")
         self.download_theme(theme_component, theme_name, theme_param)
         self.previous_assets = {}
-        self.update_active_theme()
 
   def update_themes(self, boot_run=False):
     if not os.path.exists(THEME_SAVE_PATH):

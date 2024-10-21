@@ -30,8 +30,7 @@ FrogPilotPrimelessPanel::FrogPilotPrimelessPanel(FrogPilotSettingsWindow *parent
 }
 
 void FrogPilotPrimelessPanel::showEvent(QShowEvent *event) {
-  WifiManager *wifi = new WifiManager(this);
-  QString ipAddress = wifi->getIp4Address();
+  QString ipAddress = uiState()->wifi->getIp4Address();
   ipLabel->setText(ipAddress.isEmpty() ? tr("Device Offline") : QString("%1:8082").arg(ipAddress));
 
   mapboxPublicKeySet = !params.get("MapboxPublicKey").empty();

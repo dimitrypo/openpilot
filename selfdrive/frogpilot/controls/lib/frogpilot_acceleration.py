@@ -3,6 +3,8 @@ from openpilot.common.numpy_fast import clip, interp
 from openpilot.selfdrive.car.interfaces import ACCEL_MIN, ACCEL_MAX
 from openpilot.selfdrive.controls.lib.longitudinal_planner import A_CRUISE_MIN, get_max_accel
 
+from openpilot.selfdrive.frogpilot.frogpilot_variables import CITY_SPEED_LIMIT
+
 A_CRUISE_MIN_ECO =   A_CRUISE_MIN / 2
 A_CRUISE_MIN_SPORT = A_CRUISE_MIN * 2
 
@@ -21,8 +23,11 @@ def get_max_accel_sport(v_ego):
 def get_max_accel_sport_plus(v_ego):
   return interp(v_ego, A_CRUISE_MAX_BP_CUSTOM, A_CRUISE_MAX_VALS_SPORT_PLUS)
 
+def get_max_accel_low_speeds(max_accel, v_cruise):
+  return interp(v_cruise, [0., CITY_SPEED_LIMIT / 2, CITY_SPEED_LIMIT], [max_accel / 4, max_accel / 2, max_accel])
+
 def get_max_accel_ramp_off(max_accel, v_cruise, v_ego):
-  return interp(v_cruise - v_ego, [0., 1., 5., 10.], [0., 0.25, 0.75, max_accel])
+  return interp(v_cruise - v_ego, [0., 1., 5., 10.], [0., 0.5, 1.0, max_accel])
 
 def get_max_allowed_accel(v_ego):
   return interp(v_ego, [0., 5., 20.], [4.0, 4.0, 2.0])  # ISO 15622:2018
@@ -63,6 +68,7 @@ class FrogPilotAcceleration:
     if frogpilot_toggles.human_acceleration:
       if self.frogpilot_planner.frogpilot_following.following_lead and not frogpilotCarState.trafficModeActive:
         self.max_accel = clip(self.frogpilot_planner.lead_one.aLeadK, get_max_accel_sport_plus(v_ego), get_max_allowed_accel(v_ego))
+      self.max_accel = min(get_max_accel_low_speeds(self.max_accel, self.frogpilot_planner.v_cruise), self.max_accel)
       self.max_accel = min(get_max_accel_ramp_off(self.max_accel, self.frogpilot_planner.v_cruise, v_ego), self.max_accel)
 
     if controlsState.experimentalMode:

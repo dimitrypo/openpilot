@@ -36,7 +36,7 @@ def capture_exception(*args, **kwargs) -> None:
   exc_text = traceback.format_exc()
 
   phrases_to_check = [
-    "To overwrite it, set 'overwrite' to True.",
+    "already exists. To overwrite it, set 'overwrite' to True",
   ]
 
   if any(phrase in exc_text for phrase in phrases_to_check):
