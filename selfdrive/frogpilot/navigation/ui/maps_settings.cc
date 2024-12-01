@@ -121,8 +121,6 @@ void FrogPilotMapsPanel::updateState(const UIState &s) {
     return;
   }
 
-  uiState()->scene.keep_screen_on = downloadActive;
-
   if (downloadActive) {
     updateDownloadStatusLabels();
   }
@@ -162,7 +160,7 @@ void FrogPilotMapsPanel::downloadMaps() {
     return;
   }
 
-  paramsMemory.put("OSMDownloadLocations", params.get("MapsSelected"));
+  params_memory.put("OSMDownloadLocations", params.get("MapsSelected"));
 
   downloadActive = true;
 

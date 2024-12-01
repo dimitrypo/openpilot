@@ -11,11 +11,12 @@ using Car = import "car.capnp";
 
 # you can rename the struct, but don't change the identifier
 struct FrogPilotCarControl @0x81c2f05a394cf4af {
-  alwaysOnLateralActive @0 :Bool;
-  fcwEventTriggered @1 :Bool;
-  noEntryEventTriggered @2 :Bool;
-  resumePressed @3 :Bool;
-  steerSaturatedEventTriggered @4 :Bool;
+  accelPressed @0 :Bool;
+  alwaysOnLateralActive @1 :Bool;
+  decelPressed @2 :Bool;
+  fcwEventTriggered @3 :Bool;
+  noEntryEventTriggered @4 :Bool;
+  steerSaturatedEventTriggered @5 :Bool;
 }
 
 struct FrogPilotCarState @0xaedffd8f31e7b55d {
@@ -75,12 +76,13 @@ struct FrogPilotPlan @0x80ae746ee2596b11 {
   speedLimitChanged @25 :Bool;
   stoppedEquivalenceFactor @26 :Int64;
   tFollow @27 :Float32;
-  togglesUpdated @28 :Bool;
-  unconfirmedSlcSpeedLimit @29 :Float32;
-  upcomingSLCSpeedLimit @30 :Float32;
-  vCruise @31 :Float32;
-  vtscControllingCurve @32 :Bool;
-  vtscSpeed @33 :Float32;
+  themeUpdated @28 :Bool;
+  togglesUpdated @29 :Bool;
+  unconfirmedSlcSpeedLimit @30 :Float32;
+  upcomingSLCSpeedLimit @31 :Float32;
+  vCruise @32 :Float32;
+  vtscControllingCurve @33 :Bool;
+  vtscSpeed @34 :Float32;
 }
 
 struct CustomReserved5 @0xa5cd762cd951a455 {

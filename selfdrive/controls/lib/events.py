@@ -347,27 +347,24 @@ def forcing_stop_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubMas
 
 def holiday_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubMaster, metric: bool, soft_disable_time: int, frogpilot_toggles: SimpleNamespace) -> Alert:
   holiday_messages = {
-    "new_years": ("Happy New Year! 🎉", "newYearsDayAlert"),
-    "valentines": ("Happy Valentine's Day! ❤️", "valentinesDayAlert"),
-    "st_patricks": ("Happy St. Patrick's Day! 🍀", "stPatricksDayAlert"),
-    "world_frog_day": ("Happy World Frog Day! 🐸", "worldFrogDayAlert"),
-    "april_fools": ("Happy April Fool's Day! 🤡", "aprilFoolsAlert"),
-    "easter_week": ("Happy Easter! 🐰", "easterAlert"),
-    "cinco_de_mayo": ("¡Feliz Cinco de Mayo! 🌮", "cincoDeMayoAlert"),
-    "fourth_of_july": ("Happy Fourth of July! 🎆", "fourthOfJulyAlert"),
-    "halloween_week": ("Happy Halloween! 🎃", "halloweenAlert"),
-    "thanksgiving_week": ("Happy Thanksgiving! 🦃", "thanksgivingAlert"),
-    "christmas_week": ("Merry Christmas! 🎄", "christmasAlert")
+    "new_years": "Happy New Year! 🎉",
+    "valentines": "Happy Valentine's Day! ❤️",
+    "st_patricks": "Happy St. Patrick's Day! 🍀",
+    "world_frog_day": "Happy World Frog Day! 🐸",
+    "april_fools": "Happy April Fool's Day! 🤡",
+    "easter_week": "Happy Easter! 🐰",
+    "cinco_de_mayo": "¡Feliz Cinco de Mayo! 🌮",
+    "fourth_of_july": "Happy Fourth of July! 🎆",
+    "halloween_week": "Happy Halloween! 🎃",
+    "thanksgiving_week": "Happy Thanksgiving! 🦃",
+    "christmas_week": "Merry Christmas! 🎄",
   }
 
-  holiday_name = frogpilot_toggles.current_holiday_theme
-  message, alert_type = holiday_messages.get(holiday_name, ("", ""))
-
   return Alert(
-    message,
+    holiday_messages.get(frogpilot_toggles.current_holiday_theme),
     "",
     AlertStatus.normal, AlertSize.small,
-    Priority.LOWEST, VisualAlert.none, AudibleAlert.engage, 5.)
+    Priority.LOWEST, VisualAlert.none, AudibleAlert.startup, 5.)
 
 
 def no_lane_available_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubMaster, metric: bool, soft_disable_time: int, frogpilot_toggles: SimpleNamespace) -> Alert:
@@ -383,7 +380,7 @@ def no_lane_available_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.S
 
 def torque_nn_load_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubMaster, metric: bool, soft_disable_time: int, frogpilot_toggles: SimpleNamespace) -> Alert:
   model_name = params.get("NNFFModelName", encoding='utf-8')
-  if model_name == "":
+  if model_name is None:
     return Alert(
       "NNFF Torque Controller not available",
       "Donate logs to Twilsonco to get your car supported!",

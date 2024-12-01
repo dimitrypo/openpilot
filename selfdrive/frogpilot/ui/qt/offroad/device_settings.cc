@@ -24,17 +24,7 @@ FrogPilotDevicePanel::FrogPilotDevicePanel(FrogPilotSettingsWindow *parent) : Fr
     if (param == "DeviceManagement") {
       FrogPilotParamManageControl *deviceManagementToggle = new FrogPilotParamManageControl(param, title, desc, icon);
       QObject::connect(deviceManagementToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
-        std::set<QString> modifiedDeviceManagementKeys = deviceManagementKeys;
-
-        if (customizationLevel != 2) {
-          modifiedDeviceManagementKeys.erase("IncreaseThermalLimits");
-          modifiedDeviceManagementKeys.erase("LowVoltageShutdown");
-          modifiedDeviceManagementKeys.erase("NoLogging");
-          modifiedDeviceManagementKeys.erase("NoUploads");
-          modifiedDeviceManagementKeys.erase("OfflineMode");
-        }
-
-        showToggles(modifiedDeviceManagementKeys);
+        showToggles(deviceManagementKeys);
       });
       deviceToggle = deviceManagementToggle;
     } else if (param == "DeviceShutdown") {
@@ -75,8 +65,6 @@ FrogPilotDevicePanel::FrogPilotDevicePanel(FrogPilotSettingsWindow *parent) : Fr
     addItem(deviceToggle);
     toggles[param] = deviceToggle;
 
-    makeConnections(deviceToggle);
-
     if (FrogPilotParamManageControl *frogPilotManageToggle = qobject_cast<FrogPilotParamManageControl*>(deviceToggle)) {
       QObject::connect(frogPilotManageToggle, &FrogPilotParamManageControl::manageButtonClicked, this, &FrogPilotDevicePanel::openParentToggle);
     }
@@ -110,9 +98,10 @@ FrogPilotDevicePanel::FrogPilotDevicePanel(FrogPilotSettingsWindow *parent) : Fr
 }
 
 void FrogPilotDevicePanel::showEvent(QShowEvent *event) {
-  customizationLevel = parent->customizationLevel;
+  frogpilotToggleLevels = parent->frogpilotToggleLevels;
+  tuningLevel = parent->tuningLevel;
 
-  toggles["ScreenManagement"]->setVisible(customizationLevel == 2);
+  hideToggles();
 }
 
 void FrogPilotDevicePanel::updateState(const UIState &s) {
@@ -127,7 +116,7 @@ void FrogPilotDevicePanel::showToggles(const std::set<QString> &keys) {
   setUpdatesEnabled(false);
 
   for (auto &[key, toggle] : toggles) {
-    toggle->setVisible(keys.find(key) != keys.end());
+    toggle->setVisible(keys.find(key) != keys.end() && tuningLevel >= frogpilotToggleLevels[key].toDouble());
   }
 
   setUpdatesEnabled(true);
@@ -140,10 +129,8 @@ void FrogPilotDevicePanel::hideToggles() {
   for (auto &[key, toggle] : toggles) {
     bool subToggles = deviceManagementKeys.find(key) != deviceManagementKeys.end() ||
                       screenKeys.find(key) != screenKeys.end();
-    toggle->setVisible(!subToggles);
+    toggle->setVisible(!subToggles && tuningLevel >= frogpilotToggleLevels[key].toDouble());
   }
-
-  toggles["ScreenManagement"]->setVisible(customizationLevel == 2);
 
   setUpdatesEnabled(true);
   update();

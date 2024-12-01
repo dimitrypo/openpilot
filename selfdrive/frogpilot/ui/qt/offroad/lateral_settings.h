@@ -18,7 +18,6 @@ private:
   void showEvent(QShowEvent *event) override;
   void showToggles(const std::set<QString> &keys);
   void updateMetric();
-  void updateCarToggles();
   void updateState(const UIState &s);
 
   FrogPilotParamValueButtonControl *steerFrictionToggle;
@@ -27,6 +26,8 @@ private:
   FrogPilotParamValueButtonControl *steerRatioToggle;
 
   FrogPilotSettingsWindow *parent;
+
+  QJsonObject frogpilotToggleLevels;
 
   Params params;
 
@@ -43,7 +44,7 @@ private:
   float steerKPStock;
   float steerRatioStock;
 
-  int customizationLevel;
+  int tuningLevel;
 
   std::map<QString, AbstractControl*> toggles;
 

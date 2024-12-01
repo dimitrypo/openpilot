@@ -457,8 +457,9 @@ struct CarControl {
       mail @17;
       nessie @18;
       noice @19;
-      thisIsFine @20;
-      uwu @21;
+      startup @20;
+      thisIsFine @21;
+      uwu @22;
     }
   }
 
