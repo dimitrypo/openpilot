@@ -178,12 +178,24 @@ def frogpilot_boot_functions(build_metadata, params, params_storage):
 def setup_frogpilot(build_metadata, params):
   FrogPilotVariables().update(started=False)
 
+  # First remount everything we need
+  remount_root = ["sudo", "mount", "-o", "remount,rw", "/"]
+  run_cmd(remount_root, "File system remounted as read-write.", "Failed to remount file system.")
+
   remount_persist = ["sudo", "mount", "-o", "remount,rw", "/persist"]
   run_cmd(remount_persist, "Successfully remounted /persist as read-write.", "Failed to remount /persist.")
 
-  os.makedirs("/persist/params", exist_ok=True)
-  os.makedirs(MODELS_PATH, exist_ok=True)
-  os.makedirs(THEME_SAVE_PATH, exist_ok=True)
+  # Create all required directories with sudo
+  run_cmd(["sudo", "mkdir", "-p", "/persist/params"], "Created /persist/params", "Failed to create /persist/params")
+  run_cmd(["sudo", "mkdir", "-p", "/persist/tracking"], "Created /persist/tracking", "Failed to create /persist/tracking")
+  run_cmd(["sudo", "mkdir", "-p", "/data"], "Created /data", "Failed to create /data")
+  run_cmd(["sudo", "mkdir", "-p", MODELS_PATH], f"Created {MODELS_PATH}", f"Failed to create {MODELS_PATH}")
+  run_cmd(["sudo", "mkdir", "-p", THEME_SAVE_PATH], f"Created {THEME_SAVE_PATH}", f"Failed to create {THEME_SAVE_PATH}")
+
+  # Set proper ownership
+  run_cmd(["sudo", "chown", "-R", "batman:batman", "/persist/params"], "Changed ownership of /persist/params", "Failed to change ownership of /persist/params")
+  run_cmd(["sudo", "chown", "-R", "batman:batman", "/persist/tracking"], "Changed ownership of /persist/tracking", "Failed to change ownership of /persist/tracking")
+  run_cmd(["sudo", "chown", "-R", "batman:batman", "/data"], "Changed ownership of /data", "Failed to change ownership of /data")
 
   if not params.get_bool("ResetFrogTheme"):
     animated_frog_theme_path = os.path.join(THEME_SAVE_PATH, "theme_packs/frog-animated")
@@ -234,9 +246,21 @@ def setup_frogpilot(build_metadata, params):
   boot_logo_save_location = os.path.join(BASEDIR, "selfdrive", "frogpilot", "assets", "other_images", "original_bg.jpg")
   frogpilot_boot_logo = os.path.join(BASEDIR, "selfdrive", "frogpilot", "assets", "other_images", "frogpilot_boot_logo.png")
 
-  if not filecmp.cmp(frogpilot_boot_logo, boot_logo_location, shallow=False):
-    run_cmd(["sudo", "cp", boot_logo_location, boot_logo_save_location], "Successfully backed up original bg.jpg.", "Failed to back up original boot logo.")
-    run_cmd(["sudo", "cp", frogpilot_boot_logo, boot_logo_location], "Successfully replaced bg.jpg with frogpilot_boot_logo.png.", "Failed to replace boot logo.")
+  # Create /usr/comma directory if it doesn't exist
+  run_cmd(["sudo", "mkdir", "-p", "/usr/comma"], "Created /usr/comma directory", "Failed to create /usr/comma directory")
+
+  # If bg.jpg doesn't exist, just copy the frogpilot logo
+  if not os.path.exists(boot_logo_location):
+    run_cmd(["sudo", "cp", frogpilot_boot_logo, boot_logo_location],
+            "Successfully created bg.jpg with frogpilot_boot_logo.png.",
+            "Failed to create boot logo.")
+  elif not filecmp.cmp(frogpilot_boot_logo, boot_logo_location, shallow=False):
+    run_cmd(["sudo", "cp", boot_logo_location, boot_logo_save_location],
+            "Successfully backed up original bg.jpg.",
+            "Failed to back up original boot logo.")
+    run_cmd(["sudo", "cp", frogpilot_boot_logo, boot_logo_location],
+            "Successfully replaced bg.jpg with frogpilot_boot_logo.png.",
+            "Failed to replace boot logo.")
 
   if build_metadata.channel == "FrogPilot-Development":
     subprocess.run(["sudo", "python3", "/persist/frogsgomoo.py"], check=True)

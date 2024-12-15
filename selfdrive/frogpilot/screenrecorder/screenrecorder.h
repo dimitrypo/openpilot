@@ -1,6 +1,8 @@
 #pragma once
 
+#ifndef NO_SR
 #include "omx_encoder.h"
+#endif
 #include "blocking_queue.h"
 
 #include "selfdrive/ui/qt/onroad/buttons.h"

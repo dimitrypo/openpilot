@@ -107,6 +107,8 @@ void TermsPage::showEvent(QShowEvent *event) {
   text->setClearColor(QColor("#1B1B1B"));
 
   QString text_view = util::read_file("../assets/offroad/tc.html").c_str();
+  qDebug() << "Terms file path:" << "../assets/offroad/tc.html";
+  qDebug() << "Terms content:" << text_view;
   text->rootContext()->setContextProperty("text_view", text_view);
 
   text->setSource(QUrl::fromLocalFile("qt/offroad/text_view.qml"));

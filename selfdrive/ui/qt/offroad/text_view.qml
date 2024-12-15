@@ -1,47 +1,30 @@
-import QtQuick 2.0
+import QtQuick 2.11
+import QtQuick.Controls 2.4
+import "../helpers"
 
 Item {
-  id: root
-  signal scroll()
+  property alias text: label.text
 
-  Flickable {
-    id: flickArea
-    objectName: "flickArea"
+  ScrollView {
+    id: scroll
     anchors.fill: parent
-    contentHeight: helpText.height
-    contentWidth: width - (leftMargin + rightMargin)
-    bottomMargin: 50
-    topMargin: 50
-    rightMargin: 50
-    leftMargin: 50
-    flickableDirection: Flickable.VerticalFlick
-    flickDeceleration: 7500.0
-    maximumFlickVelocity: 10000.0
-    pixelAligned: true
-
-    onAtYEndChanged: root.scroll()
+    clip: true
 
     Text {
-      id: helpText
-      width: flickArea.contentWidth
-      font.family: "Inter"
-      font.weight: "Light"
-      font.pixelSize: 50
-      textFormat: Text.RichText
-      color: "#C9C9C9"
-      wrapMode: Text.Wrap
-      text: text_view
+      id: label
+      width: scroll.width
+      wrapMode: Text.WordWrap
+      color: Qt.rgba(0.788, 0.788, 0.788, 1.0)
+      font.pixelSize: 42
     }
   }
 
-  Rectangle {
-    id: scrollbar
-    anchors.right: flickArea.right
-    anchors.rightMargin: 20
-    y: flickArea.topMargin + flickArea.visibleArea.yPosition * (flickArea.height - flickArea.bottomMargin - flickArea.topMargin)
-    width: 12
-    radius: 6
-    height: flickArea.visibleArea.heightRatio * (flickArea.height - flickArea.bottomMargin - flickArea.topMargin)
-    color: "#808080"
+  Connections {
+    target: scroll
+    function onContentYChanged() {
+      if (scroll.contentHeight > 0 && scroll.contentY >= (scroll.contentHeight - scroll.height)) {
+        TermsPage.enableAccept()
+      }
+    }
   }
 }

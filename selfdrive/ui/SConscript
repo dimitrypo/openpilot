@@ -2,8 +2,34 @@ import os
 import json
 Import('qt_env', 'arch', 'common', 'messaging', 'visionipc', 'transformations')
 
+# Define source files first
+frogpilot_src = ["../frogpilot/navigation/ui/maps_settings.cc", "../frogpilot/navigation/ui/navigation_functions.cc",
+                 "../frogpilot/navigation/ui/primeless_settings.cc", "../frogpilot/screenrecorder/omx_encoder.cc",
+                 "../frogpilot/screenrecorder/screenrecorder.cc", "../frogpilot/ui/qt/offroad/data_settings.cc",
+                 "../frogpilot/ui/qt/offroad/device_settings.cc", "../frogpilot/ui/qt/offroad/frogpilot_settings.cc",
+                 "../frogpilot/ui/qt/offroad/lateral_settings.cc", "../frogpilot/ui/qt/offroad/longitudinal_settings.cc",
+                 "../frogpilot/ui/qt/offroad/model_settings.cc", "../frogpilot/ui/qt/offroad/sounds_settings.cc",
+                 "../frogpilot/ui/qt/offroad/theme_settings.cc", "../frogpilot/ui/qt/offroad/utilities.cc",
+                 "../frogpilot/ui/qt/offroad/vehicle_settings.cc", "../frogpilot/ui/qt/offroad/visual_settings.cc",
+                 "../frogpilot/ui/qt/widgets/drive_stats.cc", "../frogpilot/ui/qt/widgets/model_reviewer.cc"]
+
+# Define base libs
 base_libs = [common, messaging, visionipc, transformations,
-             'm', 'OpenCL', 'ssl', 'crypto', 'pthread', 'avcodec', 'avformat', 'avutil', 'yuv', 'OmxCore'] + qt_env["LIBS"]
+             'm', 'OpenCL', 'ssl', 'crypto', 'pthread', 'avcodec', 'avformat', 'avutil', 'yuv'] + qt_env["LIBS"]
+
+# Check for screen recorder disable
+disable_sr = os.getenv('DISABLE_SCREEN_RECORDER') == '1' or GetOption("nosr")
+if not disable_sr:
+    base_libs.append('OmxCore')
+    qt_env.Append(CXXFLAGS=['-DUSE_SR'])
+else:
+    qt_env.Append(CXXFLAGS=['-DNO_SR'])
+    # Remove screen recorder files from compilation
+    if "../frogpilot/screenrecorder/screenrecorder.cc" in frogpilot_src:
+        frogpilot_src.remove("../frogpilot/screenrecorder/screenrecorder.cc")
+    if "../frogpilot/screenrecorder/omx_encoder.cc" in frogpilot_src:
+        frogpilot_src.remove("../frogpilot/screenrecorder/omx_encoder.cc")
+    print("Removing Screen Recorder")
 
 if arch == 'larch64':
   base_libs.append('EGL')
@@ -22,7 +48,8 @@ widgets_src = ["ui.cc", "qt/widgets/input.cc", "qt/widgets/wifi.cc",
                "qt/widgets/ssh_keys.cc", "qt/widgets/toggle.cc", "qt/widgets/controls.cc",
                "qt/widgets/offroad_alerts.cc", "qt/widgets/prime.cc", "qt/widgets/keyboard.cc",
                "qt/widgets/scrollview.cc", "qt/widgets/cameraview.cc", "#third_party/qrcode/QrCode.cc",
-               "qt/request_repeater.cc", "qt/qt_window.cc", "qt/network/networking.cc", "qt/network/wifi_manager.cc"]
+               "qt/request_repeater.cc", "qt/qt_window.cc", "qt/network/networking.cc", "qt/network/wifi_manager.cc",
+               "../frogpilot/ui/qt/widgets/frogpilot_controls.cc"]
 
 qt_env['CPPDEFINES'] = []
 if maps:
@@ -42,23 +69,9 @@ qt_src = ["main.cc", "qt/sidebar.cc", "qt/body.cc",
           "qt/onroad/onroad_home.cc", "qt/onroad/annotated_camera.cc",
           "qt/onroad/buttons.cc", "qt/onroad/alerts.cc"]
 
-frogpilot_src = ["../frogpilot/navigation/ui/maps_settings.cc", "../frogpilot/navigation/ui/navigation_functions.cc",
-                 "../frogpilot/navigation/ui/primeless_settings.cc", "../frogpilot/screenrecorder/omx_encoder.cc",
-                 "../frogpilot/screenrecorder/screenrecorder.cc", "../frogpilot/ui/qt/offroad/data_settings.cc",
-                 "../frogpilot/ui/qt/offroad/device_settings.cc", "../frogpilot/ui/qt/offroad/frogpilot_settings.cc",
-                 "../frogpilot/ui/qt/offroad/lateral_settings.cc", "../frogpilot/ui/qt/offroad/longitudinal_settings.cc",
-                 "../frogpilot/ui/qt/offroad/model_settings.cc", "../frogpilot/ui/qt/offroad/sounds_settings.cc",
-                 "../frogpilot/ui/qt/offroad/theme_settings.cc", "../frogpilot/ui/qt/offroad/utilities.cc",
-                 "../frogpilot/ui/qt/offroad/vehicle_settings.cc", "../frogpilot/ui/qt/offroad/visual_settings.cc",
-                 "../frogpilot/ui/qt/widgets/drive_stats.cc", "../frogpilot/ui/qt/widgets/frogpilot_controls.cc",
-                 "../frogpilot/ui/qt/widgets/model_reviewer.cc"]
-
-if GetOption("nosr"):
-  qt_env.Append(CXXFLAGS=['-DNO_SR'])
-  base_libs.remove('OmxCore')
-  qt_libs.remove('OmxCore')
-  frogpilot_src.remove("../frogpilot/screenrecorder/screenrecorder.cc")
-  frogpilot_src.remove("../frogpilot/screenrecorder/omx_encoder.cc")
+if disable_sr:
+  if "../frogpilot/screenrecorder/moc_screenrecorder.cc" in qt_src:
+    qt_src.remove("../frogpilot/screenrecorder/moc_screenrecorder.cc")
   print("Removing Screen Recorder")
 
 qt_src += frogpilot_src
