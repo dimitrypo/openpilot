@@ -6,7 +6,9 @@
 #include "selfdrive/ui/qt/onroad/buttons.h"
 #include "selfdrive/ui/qt/widgets/cameraview.h"
 
+#ifndef NO_SR
 #include "selfdrive/frogpilot/screenrecorder/screenrecorder.h"
+#endif
 
 class Compass : public QWidget {
   Q_OBJECT
@@ -108,7 +110,9 @@ private:
   Compass *compass_img;
   DistanceButton *distance_btn;
   PedalIcons *pedal_icons;
+#ifndef NO_SR
   ScreenRecorder *screenRecorder;
+#endif
 
   QHBoxLayout *bottom_layout;
 

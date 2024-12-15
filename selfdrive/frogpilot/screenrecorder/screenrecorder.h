@@ -1,11 +1,20 @@
 #pragma once
 
+#ifndef NO_SR
 #include "omx_encoder.h"
+#endif
 #include "blocking_queue.h"
 
 #include "selfdrive/ui/qt/onroad/buttons.h"
 
 class ScreenRecorder : public QPushButton {
+#ifdef NO_SR
+  public:
+    explicit ScreenRecorder(QWidget *parent = nullptr){}
+    ~ScreenRecorder() override{}
+
+    void updateScreen(){}
+#else
   Q_OBJECT
 
 public:
@@ -13,6 +22,12 @@ public:
   ~ScreenRecorder() override;
 
   void updateScreen(double fps, bool started);
+
+protected:
+  void paintEvent(QPaintEvent *event) override;
+
+private slots:
+  void toggleRecording();
 
 protected:
   void paintEvent(QPaintEvent *event) override;
@@ -48,4 +63,5 @@ private:
   std::unique_ptr<uint8_t[]> rgbScaleBuffer;
 
   std::thread encodingThread;
+#endif
 };

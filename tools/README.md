@@ -38,7 +38,7 @@ poetry shell
 **3. Build openpilot**
 
 ``` bash
-scons -u -j$(nproc)
+scons -u -j$(nproc) --nosr --extras
 ```
 
 ## Dev Container on any Linux or macOS

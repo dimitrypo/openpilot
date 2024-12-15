@@ -1,7 +1,8 @@
 {
   "name": "openpilot devcontainer",
   "build": {
-    "dockerfile": "Dockerfile"
+    "dockerfile": "Dockerfile",
+    "context": ".."
   },
   "postCreateCommand": ".devcontainer/container_post_create.sh",
   "postStartCommand": ".devcontainer/container_post_start.sh",

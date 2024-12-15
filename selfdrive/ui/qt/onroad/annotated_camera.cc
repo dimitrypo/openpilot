@@ -1,3 +1,4 @@
+#include <QPainterPath>
 #include "selfdrive/ui/qt/onroad/annotated_camera.h"
 
 #include <QPainter>
@@ -20,9 +21,10 @@ AnnotatedCameraWidget::AnnotatedCameraWidget(VisionStreamType type, QWidget* par
   buttons_layout->setSpacing(0);
 
   // Neokii screen recorder
+#ifndef NO_SR
   screenRecorder = new ScreenRecorder(this);
   buttons_layout->addWidget(screenRecorder);
-
+#endif
   experimental_btn = new ExperimentalButton(this);
   buttons_layout->addWidget(experimental_btn);
 
@@ -1118,11 +1120,14 @@ void AnnotatedCameraWidget::updateFrogPilotVariables(int alert_height, const UIS
 
   roadNameUI = scene.road_name_ui;
 
+#ifndef NO_SR
   bool enableScreenRecorder = scene.screen_recorder && !mapOpen;
+
   screenRecorder->setVisible(enableScreenRecorder);
   if (enableScreenRecorder) {
     screenRecorder->updateScreen(scene.fps, scene.started);
   }
+#endif
 
   dashboardSpeedLimit = scene.dashboard_speed_limit * speedConversion;
   mapsSpeedLimit = scene.speed_limit_map * speedConversion;
