@@ -1,12 +1,28 @@
 FROM ghcr.io/commaai/openpilot-base:latest
 
-RUN apt update && apt install -y vim net-tools usbutils htop ripgrep tmux wget mesa-utils xvfb libxtst6 libxv1 libglu1-mesa libegl1-mesa gdb bash-completion
-RUN pip install ipython jupyter jupyterlab
+RUN apt update && apt install -y vim net-tools usbutils htop ripgrep tmux wget mesa-utils xvfb libxtst6 libxv1 libglu1-mesa libegl1 gdb bash-completion python3-pip python3-dev python3-venv \
+    libgl1 libglx-mesa0 \
+    qtbase5-dev libqt5positioning5 libqt5positioning5-plugins qtpositioning5-dev \
+    libqt5multimedia5 qtmultimedia5-dev \
+    libqt5location5 qtlocation5-dev
 
-RUN cd /tmp && \
-    ARCH=$(arch | sed s/aarch64/arm64/ | sed s/x86_64/amd64/) && \
-    curl -L -o virtualgl.deb "https://downloads.sourceforge.net/project/virtualgl/3.1/virtualgl_3.1_$ARCH.deb" && \
-    dpkg -i virtualgl.deb
+# Create and activate virtual environment
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Create necessary directories with proper permissions
+RUN mkdir -p /.comma/params && \
+    chown -R batman:batman /.comma && \
+    chmod -R 777 /.comma
+
+# Copy project and install dependencies
+WORKDIR /workspaces/openpilot
+COPY . .
+RUN pip3 install -e ".[dev,tools,testing]"
+
+RUN wget http://security.ubuntu.com/ubuntu/pool/main/i/icu/libicu66_66.1-2ubuntu2_amd64.deb
+RUN dpkg -i libicu66_66.1-2ubuntu2_amd64.deb
 
 RUN usermod -aG video batman
 
