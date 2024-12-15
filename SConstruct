@@ -70,6 +70,14 @@ AddOption('--minimal',
           default=os.path.exists(File('#.lfsconfig').abspath), # minimal by default on release branch (where there's no LFS)
           help='the minimum build to run openpilot. no tests, tools, etc.')
 
+AddOption('--extras',
+          action='store_true',
+          help="build extras")
+
+AddOption('--nosr',
+          action='store_true',
+          help="don't build the screen recorder")
+
 ## Architecture name breakdown (arch)
 ## - larch64: linux tici aarch64
 ## - aarch64: linux pc aarch64
