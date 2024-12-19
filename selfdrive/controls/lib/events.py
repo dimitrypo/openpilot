@@ -1005,7 +1005,7 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
       "Speed Too High",
       "Model uncertain at this speed",
       AlertStatus.userPrompt, AlertSize.mid,
-      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.promptRepeat, 4.),
+      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.none, 4.),
     ET.NO_ENTRY: NoEntryAlert("Slow down to engage"),
   },
 
