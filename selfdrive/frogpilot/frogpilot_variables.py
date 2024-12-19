@@ -509,7 +509,7 @@ class FrogPilotVariables:
     toggle.traffic_mode_jerk_danger = [clip(params.get_int("TrafficJerkDanger") / 100, 0.01, 5), toggle.aggressive_jerk_danger] if toggle.traffic_profile else [1.0, 1.0]
     toggle.traffic_mode_jerk_speed = [clip(params.get_int("TrafficJerkSpeed") / 100, 0.01, 5), toggle.aggressive_jerk_speed] if toggle.traffic_profile else [0.5, 0.5]
     toggle.traffic_mode_jerk_speed_decrease = [clip(params.get_int("TrafficJerkSpeedDecrease") / 100, 0.01, 5), toggle.aggressive_jerk_speed_decrease] if toggle.traffic_profile else [0.5, 0.5]
-    toggle.traffic_mode_t_follow = [clip(params.get_float("TrafficFollow"), 0.5, 5), toggle.aggressive_follow] if toggle.traffic_profile else [0.5, 1.0]
+    toggle.traffic_mode_t_follow = [clip(params.get_float("TrafficFollow"), 0.5, 5), clip(params.get_float("TrafficFollow"), 0.5, 5) * 1.5] if toggle.traffic_profile else [0.5, 1.0]
 
     toggle.custom_ui = params.get_bool("CustomUI")
     toggle.acceleration_path = toggle.custom_ui and params.get_bool("AccelerationPath")
@@ -814,7 +814,7 @@ class FrogPilotVariables:
       toggle.traffic_mode_jerk_danger = [int(self.default_frogpilot_toggles.TrafficJerkDanger) / 100, toggle.aggressive_jerk_danger] if toggle.traffic_profile else [1.0, 1.0]
       toggle.traffic_mode_jerk_speed = [int(self.default_frogpilot_toggles.TrafficJerkSpeed) / 100, toggle.aggressive_jerk_speed] if toggle.traffic_profile else [0.5, 0.5]
       toggle.traffic_mode_jerk_speed_decrease = [int(self.default_frogpilot_toggles.TrafficJerkSpeedDecrease) / 100, toggle.aggressive_jerk_speed_decrease] if toggle.traffic_profile else [0.5, 0.5]
-      toggle.traffic_mode_t_follow = [float(self.default_frogpilot_toggles.TrafficFollow), toggle.aggressive_follow] if toggle.traffic_profile else [0.5, 1.0]
+      toggle.traffic_mode_t_follow = [float(self.default_frogpilot_toggles.TrafficFollow), float(self.default_frogpilot_toggles.TrafficFollow) * 1.5] if toggle.traffic_profile else [0.5, 1.0]
 
       toggle.custom_ui = bool(self.default_frogpilot_toggles.CustomUI)
       toggle.acceleration_path = bool(toggle.custom_ui and self.default_frogpilot_toggles.AccelerationPath)
@@ -1053,7 +1053,7 @@ class FrogPilotVariables:
       toggle.traffic_mode_jerk_danger = [int(self.default_frogpilot_toggles.TrafficJerkDanger) / 100, toggle.aggressive_jerk_danger] if toggle.traffic_profile else [1.0, 1.0]
       toggle.traffic_mode_jerk_speed = [int(self.default_frogpilot_toggles.TrafficJerkSpeed) / 100, toggle.aggressive_jerk_speed] if toggle.traffic_profile else [0.5, 0.5]
       toggle.traffic_mode_jerk_speed_decrease = [int(self.default_frogpilot_toggles.TrafficJerkSpeedDecrease) / 100, toggle.aggressive_jerk_speed_decrease] if toggle.traffic_profile else [0.5, 0.5]
-      toggle.traffic_mode_t_follow = [float(self.default_frogpilot_toggles.TrafficFollow), toggle.aggressive_follow] if toggle.traffic_profile else [0.5, 1.0]
+      toggle.traffic_mode_t_follow = [float(self.default_frogpilot_toggles.TrafficFollow), float(self.default_frogpilot_toggles.TrafficFollow) * 1.5] if toggle.traffic_profile else [0.5, 1.0]
 
       toggle.adjacent_paths = bool(toggle.custom_ui and self.default_frogpilot_toggles.AdjacentPath)
 
