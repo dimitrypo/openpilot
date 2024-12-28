@@ -5,6 +5,8 @@ import time
 import ctypes
 import numpy as np
 from pathlib import Path
+import os
+from typing import Optional
 
 from cereal import messaging
 from cereal.messaging import PubMaster, SubMaster
@@ -13,7 +15,11 @@ from openpilot.common.swaglog import cloudlog
 from openpilot.common.params import Params
 from openpilot.common.realtime import set_realtime_priority
 from openpilot.selfdrive.classic_modeld.constants import ModelConstants
-from openpilot.selfdrive.classic_modeld.runners import ModelRunner, Runtime
+
+if not os.getenv("LOCAL_SETUP"):
+  from openpilot.selfdrive.classic_modeld.runners import ModelRunner, Runtime
+else:
+  from openpilot.selfdrive.classic_modeld.runners import ModelRunner
 
 NAV_INPUT_SIZE = 256*256
 NAV_FEATURE_LEN = 256

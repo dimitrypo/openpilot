@@ -7,6 +7,7 @@ export QT_X11_NO_MITSHM=1
 export QT_QUICK_BACKEND=software
 export LIBGL_ALWAYS_SOFTWARE=1  # Force software rendering
 export GALLIUM_DRIVER=llvmpipe  # Use LLVM software renderer
+export LOCAL_SETUP=1
 
 # Create required directories for development
 sudo mkdir -p /data/backups /persist/params /persist/tracking /data/models /data/themes /usr/comma /data/media/screen_recordings
